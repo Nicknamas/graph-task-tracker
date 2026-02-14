@@ -1,0 +1,7 @@
+name: graph-task
+services:
+  front:
+    build:
+      context: .
+    ports:
+      - "80:80"
