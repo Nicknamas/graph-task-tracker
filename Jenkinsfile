@@ -4,10 +4,14 @@ pipeline {
   agent any
 
   stages {
-    stage("Build and up") {
+    stage("Build") {
       steps {
-        sh "docker build -t graph-front:latest ."
-        sh "docker run --name graph-front-app -d -p 8080:8080 graph-front"
+        sh "docker compose -f docker-compose.yml build"
+      }
+    }
+    stage("Up") {
+      steps {
+        sh "docker compose -f docker-compose.yml up --build -d --remove-orphans"
       }
     }
   }
