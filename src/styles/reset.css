@@ -1,0 +1,98 @@
+* {
+  margin: 0;
+  padding: 0;
+  box-sizing: border-box;
+  font-family: Geologica, sans-serif;
+}
+
+html,
+body,
+#app,
+.wrapper {
+  height: 100%;
+}
+
+html {
+  -webkit-text-size-adjust: none;
+  overflow: hidden;
+}
+
+body {
+  scroll-behavior: smooth;
+
+  -webkit-font-smoothing: antialiased;
+  -moz-osx-font-smoothing: grayscale;
+
+  backface-visibility: hidden;
+}
+
+body[scroll-lock] {
+  overflow: hidden;
+}
+
+button,
+input,
+textarea,
+a {
+  outline: none;
+  border: none;
+
+  &:hover,
+  &:active,
+  &:focus {
+    outline: none;
+  }
+}
+
+a,
+a:visited,
+a:link,
+a:hover {
+  text-decoration: none;
+}
+
+address {
+  font-style: normal;
+}
+fieldset,
+iframe {
+  border-width: 0;
+}
+
+th {
+  text-align: left;
+}
+
+button {
+  background-color: transparent;
+}
+
+ul {
+  list-style-type: none;
+}
+
+.base-icon {
+  display: flex;
+}
+
+body.preload * {
+  animation-duration: 0s !important;
+  transition: all 0s !important;
+  animation-duration: 0s !important;
+}
+
+:focus::-webkit-input-placeholder {
+  color: transparent;
+}
+
+:focus::-moz-placeholder {
+  color: transparent;
+}
+
+:focus:-moz-placeholder {
+  color: transparent;
+}
+
+:focus:-ms-input-placeholder {
+  color: transparent;
+}
