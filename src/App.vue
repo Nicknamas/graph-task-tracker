@@ -2,13 +2,51 @@
 import * as d3 from "d3";
 import { computed, onMounted, ref, useTemplateRef, watch } from "vue";
 import type { Data, Link, Node } from "@shared/index";
+import {
+  runIterativeBFS,
+  runIterativeDFS,
+  solveTask0_ComplexAnalysis,
+  solveTask2_ValidateDFS,
+  solveTask4_ValidateBFS,
+  solveTask7_PrimMST,
+  type WeightedAdjacencyList
+} from "./scripts/tasks";
 
 const width = ref(420)
-const isDragging = ref(false)
 const isLoadingMode = ref<boolean>(false)
 const selectedId = ref(0)
 const zoomValue = ref()
 const svgRef = useTemplateRef('svg')
+
+const sleep = (ms: number) => new Promise((r) => setTimeout(r, ms));
+
+const firstTask = computed(() => solveTask0_ComplexAnalysis(graph.value))
+
+const inputedPath = computed<number[]>(() => userInput.value.split(' ').map((item: string) => Number(item)))
+
+function validateDFS(): void {
+  const result = solveTask2_ValidateDFS(graph.value, selectedId.value, inputedPath.value)
+  console.log(inputedPath.value)
+  console.log(selectedId.value)
+
+  if (!result) {
+    alert('Введенный путь невалидный')
+    return
+  }
+
+  alert('Введенный путь верный')
+}
+
+function validateBFS(): void {
+  const result = solveTask4_ValidateBFS(graph.value, selectedId.value, inputedPath.value)
+
+  if (!result) {
+    alert('Введенный путь невалидный')
+    return
+  }
+
+  alert('Введенный путь верный')
+}
 
 function calculateIntersection(source, target, width, height) {
     const dx = target.x - source.x;
@@ -32,27 +70,6 @@ function calculateIntersection(source, target, width, height) {
             y: target.y + (dy * hw * sign) / dx
         };
     }
-}
-
-function wrap(textString, textSelection, width, xPos, yPos) {
-    textSelection.text(null);
-    const words = textString.split(/\s+/);
-    let line = [];
-    let tspan = textSelection.append("tspan").attr("x", xPos).attr("y", yPos);
-
-    words.forEach(word => {
-        line.push(word);
-        tspan.text(line.join(" "));
-        if (tspan.node().getComputedTextLength() > width && line.length > 1) {
-            line.pop();
-            tspan.text(line.join(" "));
-            line = [word];
-            tspan = textSelection.append("tspan")
-                .attr("x", xPos)
-                .attr("dy", "1.1em")
-                .text(word);
-        }
-    });
 }
 
 function render() {
@@ -170,8 +187,6 @@ function render() {
     const el = d3.select(this)
     const id = el.data()[0].id
 
-    console.log(el)
-
     if (id === selectedId.value) {
       el.select('rect').attr('stroke', 'red')
     } else {
@@ -223,73 +238,92 @@ function render() {
 
   d3.select('#reset').on("click", () => {
     for (const id of nodeIds.value) {
-      console.log(id)
       const el = d3.select(`[data-id="${id}"]`)
       el.attr('fill', 'orange')
     }
   })
 
-  d3.select('#button').on("click", () => {
-    const walkedIds = new Set()
-
-    let counter = 0
-
-    let currentId = String(selectedId.value)
-    const way: string[] = []
-
-    while (currentId !== null) {
-      way.push(currentId)
-
-      if (!graph.value[currentId]) {
-        break
-      }
-
-      currentId = graph.value[currentId][0]
-    }
-
-    function walkGraph(id: string | number) {
-      if (walkedIds.has(id)) {
-        return
-      }
-
-      counter++
-
-      walkedIds.add(id)
-
-      const el = d3.select(`[data-id="${id}"]`)
-      const t = d3.transition().duration(500 * counter * 2)
-      el.transition(t).attr('fill', 'black')
-      if (graph.value[id] === null) {
-        return
-      }
-      walkGraph(graph.value[id][0])
-    }
-
+  d3.select('#bfs').on("click", async () => {
     isLoadingMode.value = true
-    walkGraph(selectedId.value)
-    setTimeout(() => {
-      isLoadingMode.value = false
-    }, 500 * counter * 2)
+    const path = runIterativeBFS(graph.value, selectedId.value)
+    console.log(path)
+
+    for (const node of path) {
+      const el = d3.select(`[data-id="${node}"]`)
+      console.log('current element: ', el)
+      console.log('current id: ', node)
+      const t = d3.transition().duration(400)
+      el.transition(t).attr('fill', 'black')
+      await sleep(300)
+    }
+
+    isLoadingMode.value = false
+  })
+
+  d3.select('#dfs').on("click", async () => {
+    isLoadingMode.value = true
+    const path = runIterativeDFS(graph.value, selectedId.value)
+
+    for (const node in path) {
+      const el = d3.select(`[data-id="${node}"]`)
+      const t = d3.transition().duration(400)
+      el.transition(t).attr('fill', 'black')
+      await sleep(300)
+    }
+
+    isLoadingMode.value = false
   })
 }
 
-const graph = computed(() => {
+const graphWithWeight = computed<WeightedAdjacencyList>(() => {
   const object = {}
 
   for (const node of data.value.nodes) {
-    object[node.id] = null
+    object[Number(node.id)] = [{ node: Number(node.id), weight: Number(node.id) }]
   }
 
   for (const link of data.value.links) {
-    if (object[link.source] === null) {
-      object[link.source] = [link.target]
+    if (object[Number(link.source)] === null) {
+      object[Number(link.source)] = [Number(link.target)]
       continue
     }
 
-    object[link.source].push(link.target)
+    object[Number(link.source)].push({ node: Number(link.target), weight: Number(link.value) })
   }
 
-  return object
+  const array = []
+
+  for (const value of Object.values(object)) {
+    array.push(value)
+  }
+
+  return array
+})
+
+const graph = computed<number[][]>(() => {
+  const object = {}
+
+  for (const node of data.value.nodes) {
+    object[Number(node.id)] = [Number(node.id)]
+  }
+
+  for (const link of data.value.links) {
+    if (object[Number(link.source)] === null) {
+      object[Number(link.source)] = [Number(link.target)]
+      continue
+    }
+
+    object[Number(link.source)].push(Number(link.target))
+  }
+
+  const array = []
+
+  for (const key of Object.keys(object)) {
+    const value = object[key]
+    array[key] = value
+  }
+
+  return array
 })
 
 const values = ref<(number | undefined)[][]>([[undefined]])
@@ -320,7 +354,7 @@ const data = computed<Data>(() => {
       }
 
       const link: Link = {
-        value: 1,
+        value,
         source: `${i}`,
         target: `${j}`,
       }
@@ -375,6 +409,17 @@ function handleStartDrag(e): void {
   width.value = width.value - e.offsetX - 11
 }
 
+const userInput = ref<string>()
+
+function handleCheckComponent(): void {
+  if (Number(userInput.value) == firstTask.value.componentCount) {
+    alert('ALL GOOD')
+    return
+  }
+
+  alert('EGOR LOX')
+}
+
 watch(data, () => {
   render()
 })
@@ -389,10 +434,22 @@ onMounted(() => {
     <div :class="$style.content">
       <div :class="$style.aside + ' ' + $style.aside_padding">
         <div :class="$style.list">
-          <button :disabled="isLoadingMode" id="button">Обход</button>
+          <button :disabled="isLoadingMode" id="dfs">DFS</button>
+          <button :disabled="isLoadingMode" id="bfs">BFS</button>
           <button :disabled="isLoadingMode" id="reset">Сбросить обход</button>
           <button @click="addNode">Добавить узел</button>
           <button @click="deleteNode">Удалить узел</button>
+          <p>Число компонент: {{ firstTask.componentCount }}</p>
+          <p>{{ firstTask }}</p>
+          <input
+            :class="$style.userInput"
+            placeholder="Пользовательский ввод"
+            v-model="userInput"
+            type="text"
+          />
+          <button @click="handleCheckComponent">Проверить число компонент</button>
+          <button @click="validateDFS">Проверка DFS</button>
+          <button @click="validateBFS">Проверка BFS</button>
         </div>
       </div>
       <div :class="$style.view">
@@ -602,12 +659,23 @@ button {
   }
 }
 
+.userInput {
+  border: none;
+  outline: none;
+  padding: 8px 12px;
+  border-radius: 4px;
+}
+
 .input {
   text-align: center;
   width: 32px;
   transition: 0.2s;
   height: 100%;
   border: none;
+}
+
+p {
+  color: white;
 }
 </style>
 
