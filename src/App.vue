@@ -6,9 +6,13 @@ import {
   runIterativeBFS,
   runIterativeDFS,
   solveTask0_ComplexAnalysis,
+  solveTask10_PruferEncode,
+  solveTask11_PruferDecode,
   solveTask2_ValidateDFS,
   solveTask4_ValidateBFS,
   solveTask7_PrimMST,
+  solveTask8_Dijkstra,
+  solveTask9_FloydWarshall,
   type WeightedAdjacencyList
 } from "./scripts/tasks";
 
@@ -23,11 +27,21 @@ const sleep = (ms: number) => new Promise((r) => setTimeout(r, ms));
 const firstTask = computed(() => solveTask0_ComplexAnalysis(graph.value))
 
 const inputedPath = computed<number[]>(() => userInput.value.split(' ').map((item: string) => Number(item)))
+const pruferInput = ref<string>('')
+const codePrufer = computed(() => {
+  return solveTask10_PruferEncode(graph.value)
+})
+const decodePrufer = computed(() => {
+  if (!pruferInput.value) {
+    return []
+  }
+
+  const value = pruferInput.value.split(' ').map((item) => Number(item))
+  return solveTask11_PruferDecode(value)
+})
 
 function validateDFS(): void {
   const result = solveTask2_ValidateDFS(graph.value, selectedId.value, inputedPath.value)
-  console.log(inputedPath.value)
-  console.log(selectedId.value)
 
   if (!result) {
     alert('Введенный путь невалидный')
@@ -71,6 +85,14 @@ function calculateIntersection(source, target, width, height) {
         };
     }
 }
+
+const deikstra = computed(() => {
+  return solveTask8_Dijkstra(graphWithWeight.value, selectedId.value)
+})
+
+const flowyed = computed(() => {
+  return solveTask9_FloydWarshall(graphWithWeight.value)
+})
 
 function render() {
   const width = 500
@@ -128,7 +150,11 @@ function render() {
       .enter().append("line")
       .attr("stroke", "black")
       .attr("stroke-opacity", 0.6)
-      .attr("marker-end", "url(#arrowhead)");
+      .attr("marker-end", "url(#arrowhead)")
+      .each(function (d) {
+        const el = d3.select(this)
+        el.attr('data-id', d.source.id + d.target.id)
+      })
 
   const nodeGroup = mainGroup.append("g")
       .attr("class", "nodes")
@@ -246,12 +272,9 @@ function render() {
   d3.select('#bfs').on("click", async () => {
     isLoadingMode.value = true
     const path = runIterativeBFS(graph.value, selectedId.value)
-    console.log(path)
 
     for (const node of path) {
       const el = d3.select(`[data-id="${node}"]`)
-      console.log('current element: ', el)
-      console.log('current id: ', node)
       const t = d3.transition().duration(400)
       el.transition(t).attr('fill', 'black')
       await sleep(300)
@@ -264,7 +287,7 @@ function render() {
     isLoadingMode.value = true
     const path = runIterativeDFS(graph.value, selectedId.value)
 
-    for (const node in path) {
+    for (const node of path) {
       const el = d3.select(`[data-id="${node}"]`)
       const t = d3.transition().duration(400)
       el.transition(t).attr('fill', 'black')
@@ -273,13 +296,28 @@ function render() {
 
     isLoadingMode.value = false
   })
+
+  // d3.select('#ost').on("click", async () => {
+  //   isLoadingMode.value = true
+  //   const path = solveTask7_PrimMST(graphWithWeight.value)
+  //
+  //   for (const node of path) {
+  //     const el = d3.select(`[data-id="${node}"]`)
+  //     const el = d3.select(`[data-id="${node}"]`)
+  //     const t = d3.transition().duration(400)
+  //     el.transition(t).attr('fill', 'black')
+  //     await sleep(300)
+  //   }
+  //
+  //   isLoadingMode.value = false
+  // })
 }
 
 const graphWithWeight = computed<WeightedAdjacencyList>(() => {
   const object = {}
 
   for (const node of data.value.nodes) {
-    object[Number(node.id)] = [{ node: Number(node.id), weight: Number(node.id) }]
+    object[Number(node.id)] = [{ node: Number(node.id), weight: 0 }]
   }
 
   for (const link of data.value.links) {
@@ -293,8 +331,9 @@ const graphWithWeight = computed<WeightedAdjacencyList>(() => {
 
   const array = []
 
-  for (const value of Object.values(object)) {
-    array.push(value)
+  for (const key of Object.keys(object)) {
+    const value = object[key]
+    array[key] = value
   }
 
   return array
@@ -436,6 +475,7 @@ onMounted(() => {
         <div :class="$style.list">
           <button :disabled="isLoadingMode" id="dfs">DFS</button>
           <button :disabled="isLoadingMode" id="bfs">BFS</button>
+          <button :disabled="isLoadingMode" id="ost">OST</button>
           <button :disabled="isLoadingMode" id="reset">Сбросить обход</button>
           <button @click="addNode">Добавить узел</button>
           <button @click="deleteNode">Удалить узел</button>
@@ -459,47 +499,91 @@ onMounted(() => {
         <div
           :class="$style.lineResize"
         />
-        <table :class="$style.table" >
-          <thead>
-            <tr>
-              <th></th>
-              <th
-                v-for="(_, index) of values"
-                :key="index"
-                :data-active="currentPosition.x === index"
+        <div :class="$style.block">
+          <table :class="$style.table" >
+            <thead>
+              <tr>
+                <th></th>
+                <th
+                  v-for="(_, index) of values"
+                  :key="index"
+                  :data-active="currentPosition.x === index"
+                >
+                  {{ index }}
+                </th>
+              </tr>
+            </thead>
+            <tbody>
+              <tr
+                v-for="(row, indexY) of values"
+                :key="indexY"
               >
-                {{ index }}
-              </th>
-            </tr>
-          </thead>
-          <tbody>
-            <tr
-              v-for="(row, indexY) of values"
-              :key="indexY"
+                <th
+                  :data-active="currentPosition.y === indexY"
+                >
+                  {{ indexY }}
+                </th>
+                <td
+                  v-for="(_, indexX) in row.length"
+                  :key="indexX"
+                  :data-active="currentPosition.y === indexY || currentPosition.x === indexX"
+                >
+                  <input
+                    v-model.number="row[indexX]"
+                    :class="$style.input"
+                    placeholder="0"
+                    @mouseenter="currentPosition= { x: indexX, y: indexY }"
+                  />
+                </td>
+              </tr>
+            </tbody>
+          </table>
+          <p>Дейкстра</p>
+          <p>Пути от вершины {{ selectedId }} до остальных</p>
+          <div :class="$style.row">
+            <p
+              v-for="(item, index) of deikstra"
+              :key="index"
             >
-              <th
-                :data-active="currentPosition.y === indexY"
+              {{ index }}: {{ item }}
+            </p>
+          </div>
+          <table :class="$style.table" >
+            <thead>
+              <tr>
+                <th></th>
+                <th
+                  v-for="(_, index) of flowyed.length"
+                  :key="index"
+                >
+                  {{ index }}
+                </th>
+              </tr>
+            </thead>
+            <p>Флойд: </p>
+            <tbody>
+              <tr
+                v-for="(row, indexY) of flowyed"
+                :key="indexY"
               >
-                {{ indexY }}
-              </th>
-              <td
-                v-for="(_, indexX) in row.length"
-                :key="indexX"
-                :data-active="currentPosition.y === indexY || currentPosition.x === indexX"
-              >
-                <input
-                  v-model.number="row[indexX]"
-                  :class="$style.input"
-                  placeholder="0"
-                  @mouseenter="currentPosition= { x: indexX, y: indexY }"
-                />
-              </td>
-            </tr>
-          </tbody>
-        </table>
+                <th>
+                  {{ indexY }}
+                </th>
+                <td
+                  v-for="(_, indexX) in row.length"
+                  :key="indexX"
+                >
+                  <p>{{ row[indexX] }}</p>
+                </td>
+              </tr>
+            </tbody>
+          </table>
+          <p>Код прюфера: {{ codePrufer }}</p>
+          <input v-model="pruferInput" type="text" />
+          <p>Декодированный прюфер: {{ decodePrufer }}</p>
+        </div>
       </div>
     </div>
-    {{ graph }}
   </div>
 </template>
 
@@ -551,6 +635,7 @@ onMounted(() => {
 
 .row {
   display: flex;
+  gap: 8px;
 }
 
 .list {
