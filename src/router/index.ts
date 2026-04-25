@@ -2,9 +2,26 @@ import { createRouter, createWebHistory } from 'vue-router'
 
 const router = createRouter({
   history: createWebHistory(import.meta.env.BASE_URL),
-  routes: [{
-    name: 'AuthPage'
-  }],
+  routes: [
+    {
+      path: '/',
+      name: 'Root',
+      redirect: '/graph',
+      component: () => import('@/App.vue'),
+      children: [
+        {
+          path: '/auth',
+          name: 'AuthPage',
+          component: () => import('@/pages/AuthPage.vue'),
+        },
+        {
+          path: '/graph',
+          name: 'GraphPage',
+          component: () => import('@/pages/GraphPage.vue'),
+        }
+      ]
+    },
+  ],
 })
 
 export default router

@@ -11,6 +11,8 @@ function createArray<T>(length: number, value: T): T[] {
   return arr;
 }
 
+export const sleep = (ms: number) => new Promise((r) => setTimeout(r, ms));
+
 export function getVertexDegrees(adj: AdjacencyList): number[] {
   const degrees = [];
   for (let i = 0; i < adj.length; i++) degrees.push(adj[i].length);
