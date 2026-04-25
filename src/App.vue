@@ -3,6 +3,8 @@
 </template>
 
 <style>
+@import url('./styles/variables.css');
+
 #app, .wrapper {
   height: 100%;
 }

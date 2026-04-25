@@ -1,0 +1,76 @@
+<script setup lang="ts">
+import type { Modes } from '@/shared';
+import Icon from '@icons/index'
+
+const activeMode = defineModel<Modes>({ required: true })
+</script>
+
+<template>
+  <div :class="$style.aside">
+    <div :class="$style.buttons">
+      <button
+        @click="activeMode = 'dfs'"
+        :class="$style.button"
+        :data-active="activeMode === 'dfs'"
+      >
+        <Icon name="dfs" />
+        <p :class="$style.text">
+          DFS
+        </p>
+      </button>
+      <button
+        @click="activeMode = 'bfs'"
+        :class="$style.button"
+        :data-active="activeMode === 'bfs'"
+      >
+        <Icon name="dfs" />
+        <p :class="$style.text">
+          BFS
+        </p>
+      </button>
+    </div>
+  </div>
+</template>
+
+<style module>
+.aside {
+  position: relative;
+  background-color: var(--sidebar-color);
+  border: 1px solid var(--sidebar-border);
+  height: 100%;
+  padding: 20px;
+
+  .buttons {
+    display: grid;
+    grid-template-columns: repeat(2, 1fr);
+    gap: 8px;
+
+    .button {
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      padding: 12px 16px;
+      border-radius: 8px;
+      border: 1px solid var(--sidebar-border);
+      transition: 0.1s;
+      cursor: pointer;
+
+      &[data-active="true"] {
+        background-color: var(--sidebar-color-hover);
+        border-color: var(--sidebar-border-color-hover);
+      }
+
+      &:hover {
+        background-color: var(--sidebar-color-hover);
+        border-color: var(--sidebar-border-color-hover);
+      }
+
+      .text {
+        color: var(--text-color);
+        transition: 0.1s;
+        font-size: 12px;
+      }
+    }
+  }
+}
+</style>

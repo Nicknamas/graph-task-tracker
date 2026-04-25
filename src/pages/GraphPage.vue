@@ -1,7 +1,7 @@
 <script lang="ts" setup>
 import * as d3 from 'd3'
 import { computed, onMounted, onUnmounted, ref, useTemplateRef, watch } from "vue";
-import type { Data, Link, Node } from "@shared/index";
+import type { Data, Link, Modes, Node } from "@shared/index";
 import {
   runIterativeBFS,
   runIterativeDFS,
@@ -17,6 +17,7 @@ import {
   type WeightedAdjacencyList
 } from "@/scripts/tasks";
 import ZoomPanel from '@/components/ZoomPanel.vue';
+import GraphAside from '@/components/GraphAside.vue';
 
 const width = ref(420)
 const resizeTimer = ref(null);
@@ -24,9 +25,9 @@ const isLoadingMode = ref<boolean>(false)
 const selectedId = ref(0)
 const zoomValue = ref()
 const svgRef = useTemplateRef('svg')
+const activeMode = ref<Modes>()
 
 const firstTask = computed(() => solveTask0_ComplexAnalysis(graph.value))
-const greedingColors = computed(() => solveTask12_GreedyColoring(graph.value))
 
 const inputedPath = computed<number[]>(() => userInput.value.split(' ').map((item: string) => Number(item)))
 const pruferInput = ref<string>('')
@@ -543,30 +544,7 @@ onMounted(() => {
 <template>
   <div :class="$style.wrapper">
     <div :class="$style.content">
-      <div :class="$style.aside + ' ' + $style.aside_padding">
-        <div :class="$style.list">
-          <button :disabled="isLoadingMode" id="dfs">DFS</button>
-          <button :disabled="isLoadingMode" id="bfs">BFS</button>
-          <button :disabled="isLoadingMode" id="ost">OST</button>
-          <button :disabled="isLoadingMode" id="reset">Сбросить обход</button>
-          <button @click="addNode">Добавить узел</button>
-          <button @click="deleteNode">Удалить узел</button>
-          <p>Число компонент: {{ firstTask.componentCount }}</p>
-          <p>{{ firstTask }}</p>
-          <p>
-            {{ greedingColors }}
-          </p>
-          <input
-            :class="$style.userInput"
-            placeholder="Пользовательский ввод"
-            v-model="userInput"
-            type="text"
-          />
-          <button @click="handleCheckComponent">Проверить число компонент</button>
-          <button @click="validateDFS">Проверка DFS</button>
-          <button @click="validateBFS">Проверка BFS</button>
-        </div>
-      </div>
+      <GraphAside v-model="activeMode" />
       <div :class="$style.view">
         <ZoomPanel :class="$style.zoomPanel" />
         <svg ref="svg"></svg>
@@ -675,7 +653,7 @@ onMounted(() => {
 
 .content {
   display: grid;
-  grid-template-columns: 0.5fr 2fr auto;
+  grid-template-columns: 0.7fr 2fr auto;
   height: 100%;
 }
 
@@ -725,26 +703,6 @@ onMounted(() => {
   display: flex;
   flex-direction: column;
   gap: 8px;
-}
-
-button {
-  background-color: orange;
-  padding: 12px 16px;
-  border-radius: 8px;
-  color: white;
-  transition: 0.2s;
-  cursor: pointer;
-
-  font-size: 20px;
-
-  &:hover {
-    background-color: darkorange;
-  }
-
-  &:disabled {
-    background-color: grey;
-    cursor: progress;
-  }
 }
 
 .table {

@@ -13,3 +13,5 @@ export interface Data {
   links: Link[]
   nodes: Node[]
 }
+
+export type Modes = 'dfs' | 'bfs' | undefined

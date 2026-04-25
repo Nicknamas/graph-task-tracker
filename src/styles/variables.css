@@ -1,0 +1,12 @@
+:root {
+  --primary-color: oklch(0.985 0 0);
+  --secondary-color: #030213;
+  --sidebar-color: var(--primary-color);
+  --sidebar-accent: oklch(0.97 0 0);
+  --sidebar-color-hover: var(--sidebar-accent);
+  --sidebar-color-active: var(--secondary-color);
+  --sidebar-border: oklch(0.922 0 0);
+  --sidebar-border-hover: var(--secondary-color);
+  --text-color: var(--secondary-color);
+  --text-color-active: #fff;
+}
