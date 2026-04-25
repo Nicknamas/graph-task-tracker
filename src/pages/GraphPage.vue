@@ -121,8 +121,8 @@ function render() {
 
   svg.selectAll("*").remove();
 
-  const xScale = d3.scaleLinear().domain([0, 100]).range([0, width * 10]);
-  const yScale = d3.scaleLinear().domain([0, 100]).range([height * 10, 0]);
+  const xScale = d3.scaleLinear().domain([0, 100]).range([0, Math.max(width, height) * 10]);
+  const yScale = d3.scaleLinear().domain([0, 100]).range([Math.max(width, height) * 10, 0]);
 
   const xAxisGrid = d3.axisBottom(xScale)
       .tickSize(-10000)
@@ -668,6 +668,8 @@ onMounted(() => {
 
 .view {
   position: relative;
+  width: 100%;
+  height: 100%;
   background-color: #b5b5b529;
 }
 
@@ -846,7 +848,7 @@ p {
 
 .zoomPanel {
   position: absolute;
-  bottom: 12px;
+  top: 12px;
   right: 12px;
 }
 </style>
