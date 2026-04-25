@@ -7,6 +7,7 @@ const activeMode = defineModel<Modes>({ required: true })
 
 <template>
   <div :class="$style.aside">
+    <h2 :class="$style.title">GUTT</h2>
     <div :class="$style.buttons">
       <button
         @click="activeMode = 'dfs'"
@@ -35,10 +36,19 @@ const activeMode = defineModel<Modes>({ required: true })
 <style module>
 .aside {
   position: relative;
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
   background-color: var(--sidebar-color);
   border: 1px solid var(--sidebar-border);
   height: 100%;
   padding: 20px;
+
+  .title {
+    color: var(--text-color);
+    font-size: 32px;
+    font-weight: bold;
+  }
 
   .buttons {
     display: grid;

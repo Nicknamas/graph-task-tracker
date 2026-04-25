@@ -9,7 +9,6 @@ import {
   solveTask0_ComplexAnalysis,
   solveTask10_PruferEncode,
   solveTask11_PruferDecode,
-  solveTask12_GreedyColoring,
   solveTask2_ValidateDFS,
   solveTask4_ValidateBFS,
   solveTask8_Dijkstra,
@@ -18,6 +17,8 @@ import {
 } from "@/scripts/tasks";
 import ZoomPanel from '@/components/ZoomPanel.vue';
 import GraphAside from '@/components/GraphAside.vue';
+import GraphHeader from '@/components/GraphHeader.vue';
+import GraphTable from '@/components/GraphTable.vue';
 
 const width = ref(420)
 const resizeTimer = ref(null);
@@ -26,8 +27,6 @@ const selectedId = ref(0)
 const zoomValue = ref()
 const svgRef = useTemplateRef('svg')
 const activeMode = ref<Modes>()
-
-const firstTask = computed(() => solveTask0_ComplexAnalysis(graph.value))
 
 const inputedPath = computed<number[]>(() => userInput.value.split(' ').map((item: string) => Number(item)))
 const pruferInput = ref<string>('')
@@ -305,17 +304,6 @@ function render() {
   })
 
   d3.select('#bfs').on("click", async () => {
-    isLoadingMode.value = true
-    const path = runIterativeBFS(graph.value, selectedId.value)
-
-    for (const node of path) {
-      const el = d3.select(`[data-id="${node}"]`)
-      const t = d3.transition().duration(400)
-      el.transition(t).attr('fill', 'black')
-      await sleep(300)
-    }
-
-    isLoadingMode.value = false
   })
 
   d3.select('#dfs').on("click", async () => {
@@ -389,6 +377,20 @@ onUnmounted(() => {
   window.removeEventListener('resize', onResize);
   clearTimeout(resizeTimer.value);
 });
+
+async function startDFS() {
+  isLoadingMode.value = true
+  const path = runIterativeBFS(graph.value, selectedId.value)
+
+  for (const node of path) {
+    const el = d3.select(`[data-id="${node}"]`)
+    const t = d3.transition().duration(400)
+    el.transition(t).attr('fill', 'black')
+    await sleep(300)
+  }
+
+  isLoadingMode.value = false
+}
 
 const graphWithWeight = computed<WeightedAdjacencyList>(() => {
   const object = {}
@@ -486,51 +488,7 @@ const nodeIds = computed<string[]>(() => {
   return data.value.nodes.map((i) => i.id)
 })
 
-function addNode(): void {
-  const lengthRow = values.value[0]?.length
-
-  if (!lengthRow) return
-
-  if (lengthRow > 19) {
-    return
-  }
-
-  const newRow = []
-
-  for (const row of values.value) {
-    row.push(undefined)
-  }
-
-  for (let i = 0; i < lengthRow + 1; i++) {
-    newRow.push(undefined)
-  }
-
-  values.value.push(newRow)
-}
-
-function deleteNode(): void {
-  for (const row of values.value) {
-    row.pop()
-  }
-
-  values.value.pop()
-}
-
-const currentPosition = ref<{ x: number | undefined, y: number | undefined }>({
-  x: undefined,
-  y: undefined
-})
-
 const userInput = ref<string>()
-
-function handleCheckComponent(): void {
-  if (Number(userInput.value) == firstTask.value.componentCount) {
-    alert('ALL GOOD')
-    return
-  }
-
-  alert('BAD')
-}
 
 watch(data, () => {
   render()
@@ -545,104 +503,24 @@ onMounted(() => {
   <div :class="$style.wrapper">
     <div :class="$style.content">
       <GraphAside v-model="activeMode" />
-      <div :class="$style.view">
-        <ZoomPanel :class="$style.zoomPanel" />
-        <svg ref="svg"></svg>
-      </div>
-      <div :class="$style.aside + ' ' + $style.row + ' ' + $style.aside_right" :style="{ width: width + 'px' }">
-        <div
-          :class="$style.lineResize"
-        />
-        <div :class="$style.block">
-          <table :class="$style.table" >
-            <thead>
-              <tr>
-                <th></th>
-                <th
-                  v-for="(_, index) of values"
-                  :key="index"
-                  :data-active="currentPosition.x === index"
-                >
-                  {{ index }}
-                </th>
-              </tr>
-            </thead>
-            <tbody>
-              <tr
-                v-for="(row, indexY) of values"
-                :key="indexY"
-              >
-                <th
-                  :data-active="currentPosition.y === indexY"
-                >
-                  {{ indexY }}
-                </th>
-                <td
-                  v-for="(_, indexX) in row.length"
-                  :key="indexX"
-                  :data-active="currentPosition.y === indexY || currentPosition.x === indexX"
-                >
-                  <input
-                    v-model.number="row[indexX]"
-                    :class="$style.input"
-                    placeholder="0"
-                    @mouseenter="currentPosition= { x: indexX, y: indexY }"
-                  />
-                </td>
-              </tr>
-            </tbody>
-          </table>
-          <p>Дейкстра</p>
-          <p>Пути от вершины {{ selectedId }} до остальных</p>
-          <div :class="$style.row">
-            <p
-              v-for="(item, index) of deikstra"
-              :key="index"
-            >
-              {{ index }}: {{ item }}
-            </p>
-          </div>
-          <table :class="$style.table" >
-            <thead>
-              <tr>
-                <th></th>
-                <th
-                  v-for="(_, index) of flowyed.length"
-                  :key="index"
-                >
-                  {{ index }}
-                </th>
-              </tr>
-            </thead>
-            <p>Флойд: </p>
-            <tbody>
-              <tr
-                v-for="(row, indexY) of flowyed"
-                :key="indexY"
-              >
-                <th>
-                  {{ indexY }}
-                </th>
-                <td
-                  v-for="(_, indexX) in row.length"
-                  :key="indexX"
-                >
-                  <p>{{ row[indexX] }}</p>
-                </td>
-              </tr>
-            </tbody>
-          </table>
-          <p>Код прюфера: {{ codePrufer }}</p>
-          <input v-model="pruferInput" type="text" />
-          <p>Декодированный прюфер: {{ decodePrufer }}</p>
+      <div :class="$style.block">
+        <GraphHeader @click="startDFS" />
+        <div :class="$style.view">
+          <ZoomPanel :class="$style.zoomPanel" />
+          <svg ref="svg"></svg>
         </div>
       </div>
+      <GraphTable v-model="values" />
     </div>
   </div>
 </template>
 
 <style module>
 @import url('@/styles/reset.css');
+
+.block {
+  height: 100%;
+}
 
 .view {
   position: relative;
@@ -653,7 +531,7 @@ onMounted(() => {
 
 .content {
   display: grid;
-  grid-template-columns: 0.7fr 2fr auto;
+  grid-template-columns: 0.7fr 2fr 1fr;
   height: 100%;
 }
 
@@ -665,33 +543,6 @@ onMounted(() => {
 
 .aside {
   position: relative;
-  background-color: rgb(34, 36, 37);
-}
-
-.aside_right {
-  flex-grow: 1;
-}
-
-.aside_padding {
-  padding: 20px;
-}
-
-.lineResize {
-  position: absolute;
-  left: 0;
-  height: 100%;
-  width: 13px;
-  cursor: pointer;
-
-}
-
-.lineResize::after {
-  content: '';
-  position: absolute;
-  top: 0;
-  bottom: 0;
-  left: calc(50% - 6px);
-  background-color: blue;
 }
 
 .row {
@@ -705,99 +556,11 @@ onMounted(() => {
   gap: 8px;
 }
 
-.table {
-  border-collapse: collapse;
-  height: fit-content;
-  width: fit-content;
-
-  th, td {
-    text-align: center;
-  }
-
-  tbody tr:first-child td {
-    border-top: 1px solid black;
-
-    input {
-      border-start-start-radius: 0;
-      border-start-end-radius: 0;
-    }
-  }
-
-  tbody tr:last-child td {
-    border-bottom: 1px solid black;
-
-    input {
-      border-end-start-radius: 0;
-      border-end-end-radius: 0;
-    }
-  }
-
-  tbody tr td:first-of-type {
-    border-left: 1px solid black;
-
-    input {
-      border-start-start-radius: 0;
-      border-end-start-radius: 0;
-    }
-  }
-
-  tbody tr td:last-of-type {
-    border-right: 1px solid black;
-
-    input {
-      border-end-end-radius: 0;
-      border-start-end-radius: 0;
-    }
-  }
-
-  th {
-    width: 32px;
-    height: 32px;
-    font-size: 20px;
-    font-weight: 400;
-    opacity: 60%;
-    color: white;
-  }
-
-  th, td {
-    transition: 0.2s;
-  }
-
-  td {
-    input {
-      border-radius: 4px;
-    }
-  }
-
-  th[data-active="true"] {
-    background-color: orange;
-    color: white;
-  }
-
-  td:hover {
-    input {
-      background-color: darkorange;
-      color: white;
-    }
-    input::placeholder {
-      color: white;
-    }
-  }
-}
-
 .userInput {
   border: none;
   outline: none;
   padding: 8px 12px;
   border-radius: 4px;
-}
-
-.input {
-  text-align: center;
-  width: 32px;
-  transition: 0.2s;
-  height: 100%;
-  border: none;
 }
 
 p {
@@ -816,6 +579,7 @@ p {
   stroke: lightgrey;
   stroke-opacity: 0.7;
   shape-rendering: crispEdges;
+  vector-effect: non-scaling-stroke;
 }
 
 .grid path {

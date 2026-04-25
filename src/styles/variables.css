@@ -1,12 +1,21 @@
 :root {
   --primary-color: oklch(0.985 0 0);
   --secondary-color: #030213;
+  --accent-color: oklch(0.97 0 0);
+  --accent-color-dark: oklch(0.94 0 0);
+  --border: rgba(0, 0, 0, 0.1);
   --sidebar-color: var(--primary-color);
-  --sidebar-accent: oklch(0.97 0 0);
+  --sidebar-accent: var(--accent-color);
   --sidebar-color-hover: var(--sidebar-accent);
   --sidebar-color-active: var(--secondary-color);
   --sidebar-border: oklch(0.922 0 0);
   --sidebar-border-hover: var(--secondary-color);
+  --header-color: var(--primary-color);
+  --header-border-color: var(--border);
+  --table-color: var(--primary-color);
+  --table-border-color: oklch(0.922 0 0);
+  --table-value-hover: var(--accent-color-dark);
+  --icon-color: rgba(0, 0, 0, 0.8);
   --text-color: var(--secondary-color);
   --text-color-active: #fff;
 }
