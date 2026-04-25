@@ -39,6 +39,36 @@ const activeMode = defineModel<Modes>({ required: true })
           Connected Components
         </p>
       </button>
+      <button
+        @click="activeMode = 'prufer'"
+        :class="$style.button"
+        :data-active="activeMode === 'prufer'"
+      >
+        <Icon name="dfs" />
+        <p :class="$style.text">
+          Prufer
+        </p>
+      </button>
+      <button
+        @click="activeMode = 'deikstra'"
+        :class="$style.button"
+        :data-active="activeMode === 'deikstra'"
+      >
+        <Icon name="dfs" />
+        <p :class="$style.text">
+          Deikstra
+        </p>
+      </button>
+      <button
+        @click="activeMode = 'floyed'"
+        :class="$style.button"
+        :data-active="activeMode === 'floyed'"
+      >
+        <Icon name="dfs" />
+        <p :class="$style.text">
+          Floyed
+        </p>
+      </button>
     </div>
   </div>
 </template>

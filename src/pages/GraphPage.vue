@@ -28,21 +28,20 @@ const svgRef = useTemplateRef('svg')
 const activeMode = ref<Modes>()
 const userConnectedComponents = ref()
 const isCheckMode = ref<boolean>(false)
-const userPath = ref<string>()
+const userPath = ref<string>('')
 
 const complexAnalysisGraph = computed(() => solveTask0_ComplexAnalysis(graph.value))
 
-const inputedPath = computed<number[]>(() => userInput.value.split(' ').map((item: string) => Number(item)))
-const pruferInput = ref<string>('')
 const codePrufer = computed(() => {
   return solveTask10_PruferEncode(graph.value)
 })
+
 const decodePrufer = computed(() => {
-  if (!pruferInput.value) {
+  if (!userPath.value) {
     return []
   }
 
-  const value = pruferInput.value.split(' ').map((item) => Number(item))
+  const value = userPath.value.split(' ').map((item) => Number(item))
   return solveTask11_PruferDecode(value)
 })
 
@@ -145,12 +144,12 @@ function render() {
   const xAxisGrid = d3.axisBottom(xScale)
       .tickSize(-10000)
       .tickFormat('')
-      .ticks(100);
+      .ticks(200);
 
   const yAxisGrid = d3.axisLeft(yScale)
       .tickSize(-10000)
       .tickFormat('')
-      .ticks(100);
+      .ticks(200);
 
   svg.selectAll("*").remove();
 
@@ -497,8 +496,6 @@ const nodeIds = computed<string[]>(() => {
   return data.value.nodes.map((i) => i.id)
 })
 
-const userInput = ref<string>()
-
 function handleStart(): void {
   if (activeMode.value === 'dfs' && isCheckMode.value) {
     validateDFS()
@@ -522,6 +519,12 @@ function handleStart(): void {
 
   if (activeMode.value === 'connected-components') {
     startCheckComponents()
+    return
+  }
+
+  if (activeMode.value === 'prufer' && isCheckMode.value) {
+    const result = decodePrufer.value
+    values.value = result
     return
   }
 }
@@ -595,6 +598,21 @@ onMounted(() => {
               placeholder="Введите собственный путь BFS"
             />
           </div>
+          <div
+            v-if="activeMode === 'prufer'"
+          >
+            <input
+              v-model="userPath"
+              :class="$style.input"
+              placeholder="Введите код прюфера для декодирования"
+            />
+            <p
+              v-if="resultPrufer"
+              :class="$style.text"
+            >
+              Результат:
+            </p>
+          </div>
         </div>
         <div v-else>
           <p
@@ -602,6 +620,12 @@ onMounted(() => {
             :class="$style.text"
           >
             Количество компонент связности: {{ complexAnalysisGraph.componentCount }}
+          </p>
+          <p
+            v-if="activeMode === 'prufer'"
+            :class="$style.text"
+          >
+            Код прюфера: {{ codePrufer }}
           </p>
         </div>
       </GraphTable>

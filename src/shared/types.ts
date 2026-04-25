@@ -14,4 +14,4 @@ export interface Data {
   nodes: Node[]
 }
 
-export type Modes = 'dfs' | 'bfs' | 'connected-components' | undefined
+export type Modes = 'dfs' | 'bfs' | 'connected-components' | 'prufer' | 'deikstra' | 'floyed' | undefined
