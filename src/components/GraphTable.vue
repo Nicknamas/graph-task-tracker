@@ -83,6 +83,14 @@ function deleteNode(): void {
             :key="indexX"
           >
             <input
+              v-if="indexX === indexY"
+              :class="$style.input"
+              readonly
+              disabled
+              value="-"
+            >
+            <input
+              v-else
               v-model.number="row[indexX]"
               :class="$style.input"
               placeholder="0"
@@ -91,6 +99,9 @@ function deleteNode(): void {
         </tr>
       </tbody>
     </table>
+    <div>
+      <slot />
+    </div>
   </div>
 </template>
 
@@ -219,7 +230,7 @@ function deleteNode(): void {
     color: white;
   }
 
-  td:hover {
+  td:has(input:not(:disabled)):hover {
     input {
       background-color: var(--table-value-hover);
       color: white;

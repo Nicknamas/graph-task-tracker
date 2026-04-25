@@ -20,13 +20,17 @@ import GraphAside from '@/components/GraphAside.vue';
 import GraphHeader from '@/components/GraphHeader.vue';
 import GraphTable from '@/components/GraphTable.vue';
 
-const width = ref(420)
 const resizeTimer = ref(null);
 const isLoadingMode = ref<boolean>(false)
 const selectedId = ref(0)
 const zoomValue = ref()
 const svgRef = useTemplateRef('svg')
 const activeMode = ref<Modes>()
+const userConnectedComponents = ref()
+const isCheckMode = ref<boolean>(false)
+const userPath = ref<string>()
+
+const complexAnalysisGraph = computed(() => solveTask0_ComplexAnalysis(graph.value))
 
 const inputedPath = computed<number[]>(() => userInput.value.split(' ').map((item: string) => Number(item)))
 const pruferInput = ref<string>('')
@@ -43,10 +47,17 @@ const decodePrufer = computed(() => {
 })
 
 function validateDFS(): void {
-  const result = solveTask2_ValidateDFS(graph.value, selectedId.value, inputedPath.value)
+  const path = userPath.value?.split(' ').map(Number)
+
+  if (!path) {
+    alert('Введенный путь невалидный')
+    return
+  }
+
+  const result = solveTask2_ValidateDFS(graph.value, selectedId.value, path)
 
   if (!result) {
-    alert('Введенный путь невалидный')
+    alert('Введенный путь неверный')
     return
   }
 
@@ -54,10 +65,17 @@ function validateDFS(): void {
 }
 
 function validateBFS(): void {
-  const result = solveTask4_ValidateBFS(graph.value, selectedId.value, inputedPath.value)
+  const path = userPath.value?.split(' ').map(Number)
+
+  if (!path) {
+    alert('Введенный путь невалидный')
+    return
+  }
+
+  const result = solveTask4_ValidateBFS(graph.value, selectedId.value, path)
 
   if (!result) {
-    alert('Введенный путь невалидный')
+    alert('Введенный путь неверный')
     return
   }
 
@@ -288,6 +306,7 @@ function render() {
       if (!event.active) simulation.alphaTarget(0.3).restart();
       d.fx = d.x; d.fy = d.y;
   }
+
   function dragged(event, d) {
       d.fx = event.x; d.fy = event.y;
   }
@@ -295,31 +314,6 @@ function render() {
       if (!event.active) simulation.alphaTarget(0);
       d.fx = null; d.fy = null;
   }
-
-  d3.select('#reset').on("click", () => {
-    for (const id of nodeIds.value) {
-      const el = d3.select(`[data-id="${id}"]`)
-      el.attr('fill', 'orange')
-    }
-  })
-
-  d3.select('#bfs').on("click", async () => {
-  })
-
-  d3.select('#dfs').on("click", async () => {
-    isLoadingMode.value = true
-    const path = runIterativeDFS(graph.value, selectedId.value)
-
-    for (const node of path) {
-      const el = d3.select(`[data-id="${node}"]`)
-      const t = d3.transition().duration(400)
-      el.transition(t).attr('fill', 'black')
-      await sleep(300)
-    }
-
-    isLoadingMode.value = false
-  })
-
   d3.select('#zoom-in').on('click', () => {
       const svgEl = svgRef.value;
       const width = svgEl?.clientWidth;
@@ -344,21 +338,6 @@ function render() {
           zoom.transform, d3.zoomIdentity
       );
   });
-
-  // d3.select('#ost').on("click", async () => {
-  //   isLoadingMode.value = true
-  //   const path = solveTask7_PrimMST(graphWithWeight.value)
-  //
-  //   for (const node of path) {
-  //     const el = d3.select(`[data-id="${node}"]`)
-  //     const el = d3.select(`[data-id="${node}"]`)
-  //     const t = d3.transition().duration(400)
-  //     el.transition(t).attr('fill', 'black')
-  //     await sleep(300)
-  //   }
-  //
-  //   isLoadingMode.value = false
-  // })
 }
 
 function onResize() {
@@ -378,7 +357,14 @@ onUnmounted(() => {
   clearTimeout(resizeTimer.value);
 });
 
-async function startDFS() {
+function reset() {
+  for (const id of nodeIds.value) {
+    const el = d3.select(`[data-id="${id}"]`)
+    el.attr('fill', 'orange')
+  }
+}
+
+async function startBFS() {
   isLoadingMode.value = true
   const path = runIterativeBFS(graph.value, selectedId.value)
 
@@ -390,6 +376,29 @@ async function startDFS() {
   }
 
   isLoadingMode.value = false
+}
+
+async function startDFS() {
+  isLoadingMode.value = true
+  const path = runIterativeDFS(graph.value, selectedId.value)
+
+  for (const node of path) {
+    const el = d3.select(`[data-id="${node}"]`)
+    const t = d3.transition().duration(400)
+    el.transition(t).attr('fill', 'black')
+    await sleep(300)
+  }
+
+  isLoadingMode.value = false
+}
+
+async function startCheckComponents() {
+  if (complexAnalysisGraph.value.componentCount === Number(userConnectedComponents.value)) {
+    alert('Right')
+    return
+  }
+
+  alert('Wrong')
 }
 
 const graphWithWeight = computed<WeightedAdjacencyList>(() => {
@@ -490,6 +499,45 @@ const nodeIds = computed<string[]>(() => {
 
 const userInput = ref<string>()
 
+function handleStart(): void {
+  if (activeMode.value === 'dfs' && isCheckMode.value) {
+    validateDFS()
+    return
+  }
+
+  if (activeMode.value === 'dfs') {
+    startDFS()
+    return
+  }
+
+  if (activeMode.value === 'bfs' && isCheckMode.value) {
+    validateBFS()
+    return
+  }
+
+  if (activeMode.value === 'bfs') {
+    startBFS()
+    return
+  }
+
+  if (activeMode.value === 'connected-components') {
+    startCheckComponents()
+    return
+  }
+}
+
+const isHidedRestart = computed<boolean>(() => {
+  if (activeMode.value === 'dfs') {
+    return false
+  }
+
+  if (activeMode.value === 'bfs') {
+    return false
+  }
+
+  return true
+})
+
 watch(data, () => {
   render()
 })
@@ -504,13 +552,59 @@ onMounted(() => {
     <div :class="$style.content">
       <GraphAside v-model="activeMode" />
       <div :class="$style.block">
-        <GraphHeader @click="startDFS" />
+        <GraphHeader
+          @start="handleStart"
+          @restart="reset"
+          v-model="isCheckMode"
+          :is-hided-restart="isHidedRestart"
+          :show-buttons="Boolean(activeMode)"
+        />
         <div :class="$style.view">
           <ZoomPanel :class="$style.zoomPanel" />
           <svg ref="svg"></svg>
         </div>
       </div>
-      <GraphTable v-model="values" />
+      <GraphTable
+        v-model="values"
+      >
+        <div :class="$style.slot" v-if="isCheckMode">
+          <div
+            v-if="activeMode === 'connected-components'"
+          >
+            <input
+              v-model.number="userConnectedComponents"
+              :class="$style.input"
+              placeholder="Введите количество компонент связности"
+            />
+          </div>
+          <div
+            v-if="activeMode === 'dfs'"
+          >
+            <input
+              v-model="userPath"
+              :class="$style.input"
+              placeholder="Введите собственный путь DFS"
+            />
+          </div>
+          <div
+            v-if="activeMode === 'bfs'"
+          >
+            <input
+              v-model="userPath"
+              :class="$style.input"
+              placeholder="Введите собственный путь BFS"
+            />
+          </div>
+        </div>
+        <div v-else>
+          <p
+            v-if="activeMode === 'connected-components'"
+            :class="$style.text"
+          >
+            Количество компонент связности: {{ complexAnalysisGraph.componentCount }}
+          </p>
+        </div>
+      </GraphTable>
     </div>
   </div>
 </template>
@@ -571,6 +665,24 @@ p {
   position: absolute;
   top: 12px;
   right: 12px;
+}
+
+.slot {
+  input {
+    width: 100%;
+  }
+}
+
+.text {
+  font-size: 20px;
+  color: var(--text-color);
+}
+
+.input {
+  font-size: 20px;
+  padding: 8px 12px;
+  border-radius: 4px;
+  border: 1px solid var(--border);
 }
 </style>
 

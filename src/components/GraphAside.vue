@@ -29,6 +29,16 @@ const activeMode = defineModel<Modes>({ required: true })
           BFS
         </p>
       </button>
+      <button
+        @click="activeMode = 'connected-components'"
+        :class="$style.button"
+        :data-active="activeMode === 'connected-components'"
+      >
+        <Icon name="dfs" />
+        <p :class="$style.text">
+          Connected Components
+        </p>
+      </button>
     </div>
   </div>
 </template>
