@@ -109,7 +109,7 @@ watch(() => activeMode, () => {
         for="is-orient"
       >
         <p :class="$style.text">
-          Ориентированный:
+          {{ isOrient ? 'Неориентированный' : 'Ориентированный' }}
         </p>
         <input
           v-model="isOrient"
