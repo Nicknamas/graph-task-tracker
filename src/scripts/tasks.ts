@@ -5,7 +5,7 @@ export interface WeightedEdge {
 } // Посути интерфейс взвешанной вершины.
 export type WeightedAdjacencyList = WeightedEdge[][]; //типа [0:[{node:1,weight:5}]]
 
-function createArray<T>(length: number, value: T): T[] {
+export function createArray<T>(length: number, value: T): T[] {
   const arr = new Array(length);
   for (let i = 0; i < length; i++) arr[i] = value;
   return arr;

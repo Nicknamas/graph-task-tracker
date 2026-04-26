@@ -3,13 +3,16 @@ import * as d3 from 'd3'
 import { computed, onMounted, onUnmounted, ref, useTemplateRef, watch } from "vue";
 import type { Data, Link, Modes, Node } from "@shared/index";
 import {
+    createArray,
   runIterativeBFS,
   runIterativeDFS,
   sleep,
   solveTask0_ComplexAnalysis,
   solveTask10_PruferEncode,
   solveTask11_PruferDecode,
+  solveTask1_ShowDFS,
   solveTask2_ValidateDFS,
+  solveTask3_ShowBFS,
   solveTask4_ValidateBFS,
   solveTask8_Dijkstra,
   solveTask9_FloydWarshall,
@@ -34,6 +37,13 @@ const complexAnalysisGraph = computed(() => solveTask0_ComplexAnalysis(graph.val
 
 const codePrufer = computed(() => {
   return solveTask10_PruferEncode(graph.value)
+})
+
+const dfsPath = computed(() => {
+  return solveTask1_ShowDFS(graph.value, selectedId.value)
+})
+const bfsPath = computed(() => {
+  return solveTask3_ShowBFS(graph.value, selectedId.value)
 })
 
 const decodePrufer = computed(() => {
@@ -430,7 +440,7 @@ const graph = computed<number[][]>(() => {
   const object = {}
 
   for (const node of data.value.nodes) {
-    object[Number(node.id)] = [Number(node.id)]
+    object[Number(node.id)] = []
   }
 
   for (const link of data.value.links) {
@@ -489,6 +499,8 @@ const data = computed<Data>(() => {
     }
   }
 
+  console.log(JSON.stringify(object))
+
   return object
 })
 
@@ -523,10 +535,49 @@ function handleStart(): void {
   }
 
   if (activeMode.value === 'prufer' && isCheckMode.value) {
-    const result = decodePrufer.value
+    const result = processPrufer(decodePrufer.value)
     values.value = result
     return
   }
+}
+
+function processPrufer(value: [number, number][]): (number | undefined)[][] {
+  const result: (number | undefined)[][] = [[]]
+
+  let maxNode = -1
+
+  for (const row of value) {
+    for (const el of row) {
+      maxNode = Math.max(el, maxNode)
+    }
+  }
+
+  console.log(JSON.stringify(value))
+
+  for (let from = 0; from <= maxNode; from++) {
+    result[from] = createArray(maxNode + 1, undefined)
+  }
+
+  console.log(JSON.stringify(result))
+
+  for (let from = 0; from < maxNode; from++) {
+    const row = value[from]
+
+    if (!row) continue
+
+    for (const to of row) {
+      if (to === from) continue
+
+      console.log(`from ${from} - to ${to}`)
+
+      result[from][to] = 1
+      result[to][from] = 1
+    }
+  }
+
+  console.log(result)
+
+  return result
 }
 
 const isHidedRestart = computed<boolean>(() => {
@@ -627,18 +678,17 @@ onMounted(() => {
           </div>
           <div
             v-if="activeMode === 'prufer'"
+            :class="$style.section"
           >
+            <h3 :class="$style.text">
+              Введите код прюфера <br />
+              (результат подставится в таблицу)
+            </h3>
             <input
               v-model="userPath"
               :class="$style.input"
               placeholder="Введите код прюфера для декодирования"
             />
-            <p
-              v-if="resultPrufer"
-              :class="$style.text"
-            >
-              Результат:
-            </p>
           </div>
         </div>
         <div v-else>
@@ -678,6 +728,26 @@ onMounted(() => {
             </div>
           </div>
           <div
+            v-if="activeMode === 'dfs'"
+            :class="$style.section"
+          >
+            <p
+              :class="$style.text"
+            >
+              Обход DFS: {{ dfsPath }}
+            </p>
+          </div>
+          <div
+            v-if="activeMode === 'bfs'"
+            :class="$style.section"
+          >
+            <p
+              :class="$style.text"
+            >
+              Обход BFS: {{ bfsPath }}
+            </p>
+          </div>
+          <div
             v-if="activeMode === 'connected-components'"
             :class="$style.section"
           >
@@ -693,6 +763,12 @@ onMounted(() => {
           >
             Код прюфера: {{ codePrufer }}
           </p>
+          <p
+            v-if="activeMode === undefined"
+            :class="$style.text"
+          >
+            Выберите задачу
+          </p>
         </div>
       </GraphTable>
     </div>
@@ -700,10 +776,13 @@ onMounted(() => {
 </template>
 
 <style module>
-@import url('@/styles/reset.css');
+.wrapper {
+  height: 100%;
+}
 
 .block {
-  height: 100%; }
+  height: 100%;
+}
 
 .section {
   display: flex;

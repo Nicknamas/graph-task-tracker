@@ -11,16 +11,19 @@
     "type-check": "vue-tsc --build",
     "lint": "run-s lint:*",
     "lint:oxlint": "oxlint . --fix",
+    "openapi-ts": "node --env-file=.env ./openapi.ts",
     "lint:eslint": "eslint . --fix --cache",
     "format": "oxfmt src/"
   },
   "dependencies": {
+    "@tanstack/vue-query": "^5.100.5",
     "d3": "^7.9.0",
     "pinia": "^3.0.4",
     "vue": "^3.5.27",
     "vue-router": "^5.0.1"
   },
   "devDependencies": {
+    "@hey-api/openapi-ts": "0.96.1",
     "@tsconfig/node24": "^24.0.4",
     "@types/node": "^24.10.9",
     "@vitejs/plugin-vue": "^6.0.3",

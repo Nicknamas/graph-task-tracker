@@ -1,87 +1,18 @@
 <script setup lang="ts">
-import { ref } from 'vue'
-import MinusIcon from './MinusIcon.vue'
-import PlusIcon from './PlusIcon.vue'
-
-const values = defineModel<(number | undefined)[][]>()
-
-const isOrient = ref<boolean>(false)
-
-function addNode(): void {
-  if (!values.value || !values.value[0]) return
-
-  const lengthRow = values.value[0].length
-
-  if (lengthRow > 19) {
-    return
-  }
-
-  const newRow = []
-
-  for (const row of values.value) {
-    row.push(undefined)
-  }
-
-  for (let i = 0; i < lengthRow + 1; i++) {
-    newRow.push(undefined)
-  }
-
-  values.value.push(newRow)
+interface Props {
+  selectedId: number
+  values: number[][]
 }
 
-function deleteNode(): void {
-  if (!values.value) return
-
-  for (const row of values.value) {
-    row.pop()
-  }
-
-  values.value.pop()
-}
-
-function handleInput(event: InputEvent, x: number, y: number) {
-  if (!values.value) return
-
-  const row = values.value[y]
-
-  if (!row) return
-
-  if (isOrient.value) {
-    row[x] = Number((event.target as HTMLInputElement).value)
-  }
-}
+defineProps<Props>()
 </script>
 
 <template>
   <div :class="$style.tableContainer">
     <div :class="$style.header">
       <p :class="$style.title">
-        Adjacency Matrix
+        Deikstra
       </p>
-      <div :class="$style.buttons">
-        <button
-          :class="$style.button"
-          @click="addNode"
-        >
-          <PlusIcon />
-        </button>
-        <button
-          :class="$style.button"
-          @click="deleteNode"
-        >
-          <MinusIcon />
-        </button>
-      </div>
-      <label for="is-orient">
-        <p :class="$style.text">
-          isOrient:
-        </p>
-        <input
-          v-model="isOrient"
-          type="checkbox"
-          id="is-orient"
-        >
-      </label>
     </div>
     <table :class="$style.table" >
       <thead>
@@ -117,7 +48,6 @@ function handleInput(event: InputEvent, x: number, y: number) {
             <input
               v-else
               v-model.number="row[indexX]"
-              @input="handleInput($event, indexY, indexX)"
               :class="$style.input"
               placeholder="0"
             />
@@ -153,10 +83,6 @@ function handleInput(event: InputEvent, x: number, y: number) {
     font-size: 20px;
     color: var(--text-color);
   }
-}
-
-.text {
-  color: var(--text-color);
 }
 
 .divider {
