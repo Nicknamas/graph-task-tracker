@@ -74,7 +74,7 @@ function handleInput(event: InputEvent, x: number, y: number) {
       </div>
       <label for="is-orient">
         <p :class="$style.text">
-          isOrient:
+          isNeOrient:
         </p>
         <input
           v-model="isOrient"

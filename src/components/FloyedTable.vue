@@ -1,24 +1,18 @@
 <script setup lang="ts">
-import { solveTask8_Dijkstra, type WeightedAdjacencyList } from '@/scripts/tasks';
+import { solveTask9_FloydWarshall, type WeightedAdjacencyList } from '@/scripts/tasks';
 import { computed } from 'vue';
 
 interface Props {
-  selectedId: number
   values: WeightedAdjacencyList
 }
 
-const { values, selectedId } = defineProps<Props>()
+const { values } = defineProps<Props>()
 
-const result = computed(() => solveTask8_Dijkstra(values, selectedId))
+const result = computed(() => solveTask9_FloydWarshall(values))
 </script>
 
 <template>
   <div :class="$style.tableContainer">
-    <div :class="$style.header">
-      <p :class="$style.title">
-        Выбранный id: {{ selectedId }}
-      </p>
-    </div>
     <table :class="$style.table" >
       <thead>
         <tr>
@@ -31,10 +25,13 @@ const result = computed(() => solveTask8_Dijkstra(values, selectedId))
         </tr>
       </thead>
       <tbody>
-        <tr>
+        <tr
+          v-for="(row, indexY) of result"
+          :key="indexY"
+        >
           <td
-            v-for="(value, indexY) of result"
-            :key="indexY"
+            v-for="(value, indexX) of row"
+            :key="indexX"
           >
             <input
               v-if="!value"

@@ -23,6 +23,7 @@ import GraphAside from '@/components/GraphAside.vue';
 import GraphHeader from '@/components/GraphHeader.vue';
 import GraphTable from '@/components/GraphTable.vue';
 import DeikstraTable from '@/components/DeikstraTable.vue';
+import FloyedTable from '@/components/FloyedTable.vue';
 
 const resizeTimer = ref(null);
 const isLoadingMode = ref<boolean>(false)
@@ -768,6 +769,15 @@ onMounted(() => {
               Результат работы дейкстры:
             </h3>
             <DeikstraTable :selected-id="selectedId" :values="graphWithWeight" />
+          </div>
+          <div
+            v-if="activeMode === 'floyed'"
+            :class="$style.section"
+          >
+            <h3 :class="$style.title">
+              Результат работы Флойда:
+            </h3>
+            <FloyedTable :values="graphWithWeight" />
           </div>
           <p
             v-if="activeMode === undefined"
