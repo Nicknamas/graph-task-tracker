@@ -79,6 +79,26 @@ const activeMode = defineModel<Modes>({ required: true })
           Floyed
         </p>
       </button>
+      <button
+        @click="activeMode = 'greeding'"
+        :class="$style.button"
+        :data-active="activeMode === 'greeding'"
+      >
+        <Icon name="dfs" />
+        <p :class="$style.text">
+          Greeding
+        </p>
+      </button>
+      <button
+        @click="activeMode = 'mst'"
+        :class="$style.button"
+        :data-active="activeMode === 'mst'"
+      >
+        <Icon name="dfs" />
+        <p :class="$style.text">
+          MST
+        </p>
+      </button>
     </div>
   </div>
 </template>

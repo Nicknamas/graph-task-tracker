@@ -62,7 +62,7 @@ function handleInput(event: InputEvent, x: number, y: number) {
 }
 
 watch(() => activeMode, () => {
-  if (activeMode === 'prufer') {
+  if (activeMode === 'prufer' || activeMode === 'mst') {
     isOrient.value = true
 
     for (let i = 0; i < values.value.length; i++) {
@@ -71,8 +71,6 @@ watch(() => activeMode, () => {
       if (!row) continue
 
       for (let j = i; j < row.length; j++) {
-        console.log('J: ', j)
-        console.log('I: ', i)
         const row1 = values.value[i]
         const row2 = values.value[j]
 

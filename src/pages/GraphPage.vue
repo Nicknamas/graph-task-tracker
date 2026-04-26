@@ -11,11 +11,12 @@ import {
   solveTask0_ComplexAnalysis,
   solveTask10_PruferEncode,
   solveTask11_PruferDecode,
+  solveTask12_GreedyColoring,
   solveTask1_ShowDFS,
+  solveTask7_PrimMST,
   solveTask2_ValidateDFS,
   solveTask3_ShowBFS,
   solveTask4_ValidateBFS,
-  solveTask9_FloydWarshall,
   type WeightedAdjacencyList
 } from "@/scripts/tasks";
 import ZoomPanel from '@/components/ZoomPanel.vue';
@@ -30,7 +31,7 @@ import { useRoute } from 'vue-router';
 import { useMutation } from '@tanstack/vue-query';
 import { patchSyncMutation } from '@/generated/api/@tanstack/vue-query.gen';
 import type { CreateNodeMessage, EdgeMessage } from '@/generated/api';
-import { toast } from 'vue3-toastify';
+import GreedingTable from '@/components/GreedingTable.vue';
 
 const route = useRoute()
 
@@ -88,8 +89,6 @@ function handleUpdateGraph(): void {
       assigned: [],
     }
   })
-
-
 
   const edges: EdgeMessage[]  = data.value.links.map((item) => {
     const { source, target, value } = item
@@ -154,6 +153,10 @@ const dfsPath = computed(() => {
 })
 const bfsPath = computed(() => {
   return solveTask3_ShowBFS(graph.value, selectedId.value).map((item) => Number(item))
+})
+
+const mstPath = computed(() => {
+  return solveTask7_PrimMST(graphWithWeight.value)
 })
 
 const decodePrufer = computed(() => {
@@ -224,10 +227,6 @@ function calculateIntersection(source, target, width, height) {
         };
     }
 }
-
-const flowyed = computed(() => {
-  return solveTask9_FloydWarshall(graphWithWeight.value)
-})
 
 function render() {
   const rectWidth = 200;
@@ -507,6 +506,24 @@ async function startDFS() {
   isLoadingMode.value = false
 }
 
+async function startMST() {
+  isLoadingMode.value = true
+
+  for (const node of mstPath.value) {
+    const el1 = d3.select(`[data-id="${node.u}"]`)
+    const el2 = d3.select(`[data-id="${node.v}"]`)
+    const edge = d3.select(`[data-id="${node.u}${node.v}]`)
+    const t = d3.transition().duration(400)
+    el1.transition(t).attr('fill', 'black')
+    el2.transition(t).attr('fill', 'black')
+    console.log(edge)
+    edge.transition(t).attr('stroke', 'orange')
+    edge.transition(t).attr('stroke-width', '2')
+  }
+
+  isLoadingMode.value = false
+}
+
 async function startCheckComponents() {
   if (complexAnalysisGraph.value.componentCount === Number(userConnectedComponents.value)) {
     alert('Right')
@@ -641,6 +658,11 @@ function handleStart(): void {
   if (activeMode.value === 'prufer' && isCheckMode.value) {
     const result = processPrufer(decodePrufer.value)
     values.value = result
+    return
+  }
+
+  if (activeMode.value === 'mst') {
+    startMST()
     return
   }
 }
@@ -835,7 +857,7 @@ onMounted(() => {
             />
           </div>
           <div
-            v-show="activeMode === 'prufer'"
+            v-if="activeMode === 'prufer'"
             :class="$style.section"
           >
             <h3 :class="$style.text">
@@ -850,6 +872,15 @@ onMounted(() => {
           </div>
         </div>
         <div v-show="!isCheckMode">
+          <div
+            v-show="activeMode === 'greeding'"
+            :class="$style.section"
+          >
+            <h3 :class="$style.title">
+              Вывод покраски:
+            </h3>
+            <GreedingTable :values="graph" />
+          </div>
           <div
             v-show="activeMode === 'complex'"
             :class="$style.section"
@@ -916,7 +947,7 @@ onMounted(() => {
             </p>
           </div>
           <p
-            v-show="activeMode === 'prufer'"
+            v-if="activeMode === 'prufer'"
             :class="$style.text"
           >
             Код прюфера: {{ codePrufer }}
