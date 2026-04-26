@@ -3,7 +3,8 @@ WORKDIR /app
 COPY package.json package-lock.json* ./
 RUN --mount=type=cache,target=/root/.npm npm ci
 COPY . .
-RUN npm run build
+
+RUN NODE_OPTIONS="--max-old-space-size=1024" npm run build
 
 FROM node:lts-alpine3.22 AS runner
 
@@ -15,4 +16,4 @@ COPY --from=builder /app/dist ./dist
 
 EXPOSE 3000
 
-CMD ["serve", "-s", "dist", "-l", "3000"
+CMD ["serve", "-s", "dist", "-l", "3000"]
