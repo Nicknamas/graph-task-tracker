@@ -12,15 +12,14 @@ services:
       options:
         max-size: "10m"
         max-file: "3"
-    # Ограничения, чтобы не вешать VPS
     deploy:
       resources:
         limits:
           cpus: '0.70'
           memory: 1024M
     networks:
-      - proxy_network
+      - proxy-network
 
 networks:
-  app_network:
+  proxy-network:
     external: true
