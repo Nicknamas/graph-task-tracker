@@ -3,6 +3,7 @@ import { postLoginMutation } from '@/generated/api/@tanstack/vue-query.gen';
 import { useSetToken } from '@/scripts/tasks';
 import { useMutation } from '@tanstack/vue-query';
 import { ref } from 'vue';
+import { motion } from 'motion-v'
 import { useRouter } from 'vue-router';
 
 const { setToken } = useSetToken()
@@ -43,8 +44,16 @@ function handleCreateAccount() {
       </h2>
     </div>
     <div :class="$style.content">
-      <div
+      <motion.div
         :class="$style.formContainer"
+        :initial="{
+          y: -100,
+          opacity: 0.5,
+        }"
+        :animate="{
+          y: 0,
+          opacity: 1,
+        }"
       >
         <div :class="$style.title">
           Авторизация
@@ -67,6 +76,12 @@ function handleCreateAccount() {
             name="password"
             placeholder="Пароль"
           />
+          <a
+            @click="$router.push({ name: 'SignUpPage' })"
+            :class="$style.link"
+          >
+            Нет аккаунта?
+          </a>
           <button
             :class="$style.button"
             @click="handleCreateAccount"
@@ -74,7 +89,7 @@ function handleCreateAccount() {
             Создать
           </button>
         </form>
-      </div>
+      </motion.div>
     </div>
   </div>
 </template>
@@ -132,9 +147,6 @@ function handleCreateAccount() {
   display: flex;
   flex-direction: column;
   gap: 24px;
-  background-color: var(--auth-color);
-  border: 1px solid var(--auth-border-color);
-  border-radius: 12px;
   width: 100%;
   max-width: 360px;
   padding: 32px 40px;
@@ -147,5 +159,12 @@ function handleCreateAccount() {
   gap: 12px;
   width: 100%;
   margin-inline: auto;
+}
+
+.link {
+  color: #5d70dd;
+  text-align: center;
+  text-decoration: underline;
+  cursor: pointer;
 }
 </style>

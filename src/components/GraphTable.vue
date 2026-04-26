@@ -88,7 +88,7 @@ watch(() => activeMode, () => {
   <div :class="$style.tableContainer">
     <div :class="$style.header">
       <p :class="$style.title">
-        Adjacency Matrix
+        Матрица смежности
       </p>
       <div :class="$style.buttons">
         <button
@@ -104,9 +104,12 @@ watch(() => activeMode, () => {
           <MinusIcon />
         </button>
       </div>
-      <label for="is-orient">
+      <label
+        :class="$style.label"
+        for="is-orient"
+      >
         <p :class="$style.text">
-          isNeOrient:
+          Ориентированный:
         </p>
         <input
           v-model="isOrient"
@@ -172,7 +175,8 @@ watch(() => activeMode, () => {
   background-color: var(--table-color);
   border: 1px solid var(--table-border-color);
   padding: 20px;
-  height: 100%;
+  height: 100vh;
+  overflow-x: scroll;
 }
 
 .header {
@@ -277,7 +281,7 @@ watch(() => activeMode, () => {
   }
 
   th {
-    width: 32px;
+    min-width: 32px;
     height: 32px;
     font-size: 16px;
     font-weight: 400;
@@ -312,5 +316,11 @@ watch(() => activeMode, () => {
 
 .slot {
   margin-top: 12px;
+}
+
+.label {
+  display: flex;
+  gap: 8px;
+  cursor: pointer;
 }
 </style>

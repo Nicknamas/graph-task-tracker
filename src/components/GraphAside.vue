@@ -16,7 +16,7 @@ const activeMode = defineModel<Modes>({ required: true })
       >
         <Icon name="dfs" />
         <p :class="$style.text">
-          Complex Analyze
+          Анализ
         </p>
       </button>
       <button
@@ -46,7 +46,7 @@ const activeMode = defineModel<Modes>({ required: true })
       >
         <Icon name="dfs" />
         <p :class="$style.text">
-          Connected Components
+          Компоненты связности
         </p>
       </button>
       <button
@@ -56,7 +56,7 @@ const activeMode = defineModel<Modes>({ required: true })
       >
         <Icon name="dfs" />
         <p :class="$style.text">
-          Prufer
+          Прюфер
         </p>
       </button>
       <button
@@ -66,7 +66,7 @@ const activeMode = defineModel<Modes>({ required: true })
       >
         <Icon name="dfs" />
         <p :class="$style.text">
-          Deikstra
+          Дейкстра
         </p>
       </button>
       <button
@@ -76,7 +76,7 @@ const activeMode = defineModel<Modes>({ required: true })
       >
         <Icon name="dfs" />
         <p :class="$style.text">
-          Floyed
+          Флойд
         </p>
       </button>
       <button
@@ -86,7 +86,7 @@ const activeMode = defineModel<Modes>({ required: true })
       >
         <Icon name="dfs" />
         <p :class="$style.text">
-          Greeding
+          Покраска
         </p>
       </button>
       <button
@@ -96,7 +96,7 @@ const activeMode = defineModel<Modes>({ required: true })
       >
         <Icon name="dfs" />
         <p :class="$style.text">
-          MST
+          Остово дерево
         </p>
       </button>
     </div>
@@ -111,7 +111,7 @@ const activeMode = defineModel<Modes>({ required: true })
   gap: 12px;
   background-color: var(--sidebar-color);
   border: 1px solid var(--sidebar-border);
-  height: 100%;
+  height: 100vh;
   padding: 20px;
 
   .title {

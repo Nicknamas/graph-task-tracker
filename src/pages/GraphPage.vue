@@ -399,10 +399,11 @@ function render() {
       .style("font-size", fontSize)
       .each(function(d) {
           const xPos = -rectWidth / 2 + 10;
-          const yPos = 5;
+          const yPos = -8;
+          const node = indexMapToNode.get(Number(d.id))
           const el = d3.select(this);
-          el.append("tspan").attr("x", xPos).attr("y", yPos).text(`id: ${d.id ? d.id : '-'}`);
-          el.append("tspan").attr("x", xPos).attr("dy", "1.2em").text(`time: ${d.estimate ? d.estimate : '-'}`);
+          el.append("tspan").attr("x", xPos).attr("y", yPos).text(`${node?.Name ? node.Name : '-'}`);
+          el.append("tspan").attr("x", xPos).attr("dy", "1.2em").text(`id: ${d?.id ? d.id : '-'}`);
           el.append("tspan").attr("x", xPos).attr("dx", "8em").text(`due date: ${d.due_date ? d.due_date : '-'}`);
       });
 
@@ -1103,6 +1104,7 @@ p {
 }
 
 .input {
+  width: 100%;
   font-size: 20px;
   padding: 8px 12px;
   border-radius: 4px;

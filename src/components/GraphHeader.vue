@@ -38,7 +38,7 @@ const isCheckMode = defineModel<boolean>()
           for="check-mode"
           v-if="!isHidedCheckMode"
         >
-          User input mode:
+          Пользовательский ввод:
           <input
             v-model="isCheckMode"
             id="check-mode"
