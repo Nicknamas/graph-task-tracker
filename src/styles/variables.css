@@ -21,6 +21,7 @@
   --icon-color: rgba(0, 0, 0, 0.8);
   --text-color: var(--secondary-color);
   --text-color-active: #fff;
+  --button-text-color: #fff;
   --button-color: var(--secondary-color);
   --button-color-hover: var(--secondary-color-light);
 }

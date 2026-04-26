@@ -1,3 +1,5 @@
+import { client } from "@/generated/api/client.gen";
+
 export type AdjacencyList = number[][]; // [0:[1,2,3]]
 export interface WeightedEdge {
   node: number;
@@ -9,6 +11,25 @@ export function createArray<T>(length: number, value: T): T[] {
   const arr = new Array(length);
   for (let i = 0; i < length; i++) arr[i] = value;
   return arr;
+}
+
+export const setToken = (token: string | undefined = undefined) => {
+  if (token) {
+    localStorage.setItem('accessToken', token)
+  }
+
+  client.setConfig({
+    baseUrl: import.meta.env.VITE_API,
+    auth() {
+      const token = localStorage.getItem('accessToken')
+
+      if (!token) {
+        return
+      }
+
+      return token
+    }
+  })
 }
 
 export const sleep = (ms: number) => new Promise((r) => setTimeout(r, ms));

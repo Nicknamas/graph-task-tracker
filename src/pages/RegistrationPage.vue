@@ -1,15 +1,46 @@
 <script setup lang="ts" >
 import { postRegistrationMutation } from '@/generated/api/@tanstack/vue-query.gen';
+import { setToken } from '@/scripts/tasks';
 import { useMutation } from '@tanstack/vue-query';
 import { ref } from 'vue';
+import { useRouter } from 'vue-router';
+import { toast } from 'vue3-toastify';
+
+const router = useRouter()
 
 const username = ref<string>()
 const password = ref<string>()
 const passwordConfirm = ref<string>()
 
 const { mutate: registration } = useMutation({
-  ...postRegistrationMutation(),
-  onSuccess: () => {}
+  ...postRegistrationMutation({
+    baseUrl: import.meta.env.VITE_API,
+  }),
+  onError: (error) => {
+    const { Errors } = error
+    const { Password } = Errors
+    for (const e of Password) {
+      if (e === "Password must be at least 8 characters long.") {
+        toast("Пароль должен быть не менее 8 символов")
+        return
+      }
+      if (e === "Password must contain at least one uppercase letter.") {
+        toast("Пароль должен содержать хотя бы одну заглавную букву.")
+        return
+      }
+      if (e === "Password must contain at least one special character (!?*.@#$%^).") {
+        toast("Пароль должен содержать хотя бы один специальный символ (!?*.@#$%^).")
+        return
+      }
+    }
+  },
+  onSuccess: (data) => {
+    if (data.token) {
+      setToken(data.token)
+    }
+
+    router.push({ name: 'GraphList' })
+  }
 })
 
 function handleCreateAccount() {
@@ -44,18 +75,21 @@ function handleCreateAccount() {
             v-model="username"
             :class="$style.input"
             type="text"
+            name="username"
             placeholder="Введите имя"
           />
           <input
             v-model="password"
             :class="$style.input"
             type="text"
+            name="password"
             placeholder="Пароль"
           />
           <input
             v-model="passwordConfirm"
             :class="$style.input"
             type="text"
+            name="password"
             placeholder="Повторите пароль"
           />
           <button

@@ -3,8 +3,8 @@
 import { queryOptions, type UseMutationOptions } from '@tanstack/vue-query';
 
 import { client } from '../client.gen';
-import { getByGraphIdSse, getGetPaginatedGraph, getUserList, type Options, patchSync, postCreate, postLogin, postMakeAssigned, postRegistration, postRemoveAssigned, postUserMe } from '../sdk.gen';
-import type { GetByGraphIdSseData, GetByGraphIdSseError, GetGetPaginatedGraphData, GetGetPaginatedGraphError, GetUserListData, GetUserListError, PatchSyncData, PatchSyncError, PostCreateData, PostCreateError, PostCreateResponse, PostLoginData, PostLoginError, PostLoginResponse, PostMakeAssignedData, PostMakeAssignedError, PostRegistrationData, PostRegistrationError, PostRegistrationResponse, PostRemoveAssignedData, PostRemoveAssignedError, PostUserMeData, PostUserMeError } from '../types.gen';
+import { deleteByGraphId, getByGraphIdSse, getGetPaginatedGraph, getUserList, getUserMe, type Options, patchSync, postCreate, postLogin, postMakeAssigned, postRegistration, postRemoveAssigned } from '../sdk.gen';
+import type { DeleteByGraphIdData, DeleteByGraphIdError, GetByGraphIdSseData, GetByGraphIdSseError, GetGetPaginatedGraphData, GetGetPaginatedGraphError, GetGetPaginatedGraphResponse, GetUserListData, GetUserListError, GetUserMeData, GetUserMeError, PatchSyncData, PatchSyncError, PostCreateData, PostCreateError, PostCreateResponse, PostLoginData, PostLoginError, PostLoginResponse, PostMakeAssignedData, PostMakeAssignedError, PostRegistrationData, PostRegistrationError, PostRegistrationResponse, PostRemoveAssignedData, PostRemoveAssignedError } from '../types.gen';
 
 export const postCreateMutation = (options?: Partial<Options<PostCreateData>>): UseMutationOptions<PostCreateResponse, PostCreateError, Options<PostCreateData>> => {
     const mutationOptions: UseMutationOptions<PostCreateResponse, PostCreateError, Options<PostCreateData>> = {
@@ -112,7 +112,7 @@ export const postRemoveAssignedMutation = (options?: Partial<Options<PostRemoveA
 
 export const getGetPaginatedGraphQueryKey = (options?: Options<GetGetPaginatedGraphData>) => createQueryKey('getGetPaginatedGraph', options);
 
-export const getGetPaginatedGraphOptions = (options?: Options<GetGetPaginatedGraphData>) => queryOptions<unknown, GetGetPaginatedGraphError, unknown, ReturnType<typeof getGetPaginatedGraphQueryKey>>({
+export const getGetPaginatedGraphOptions = (options?: Options<GetGetPaginatedGraphData>) => queryOptions<GetGetPaginatedGraphResponse, GetGetPaginatedGraphError, GetGetPaginatedGraphResponse, ReturnType<typeof getGetPaginatedGraphQueryKey>>({
     queryFn: async ({ queryKey, signal }) => {
         const { data } = await getGetPaginatedGraph({
             ...options,
@@ -124,6 +124,20 @@ export const getGetPaginatedGraphOptions = (options?: Options<GetGetPaginatedGra
     },
     queryKey: getGetPaginatedGraphQueryKey(options)
 });
+
+export const deleteByGraphIdMutation = (options?: Partial<Options<DeleteByGraphIdData>>): UseMutationOptions<unknown, DeleteByGraphIdError, Options<DeleteByGraphIdData>> => {
+    const mutationOptions: UseMutationOptions<unknown, DeleteByGraphIdError, Options<DeleteByGraphIdData>> = {
+        mutationFn: async (fnOptions) => {
+            const { data } = await deleteByGraphId({
+                ...options,
+                ...fnOptions,
+                throwOnError: true
+            });
+            return data;
+        }
+    };
+    return mutationOptions;
+};
 
 export const postRegistrationMutation = (options?: Partial<Options<PostRegistrationData>>): UseMutationOptions<PostRegistrationResponse, PostRegistrationError, Options<PostRegistrationData>> => {
     const mutationOptions: UseMutationOptions<PostRegistrationResponse, PostRegistrationError, Options<PostRegistrationData>> = {
@@ -153,19 +167,20 @@ export const postLoginMutation = (options?: Partial<Options<PostLoginData>>): Us
     return mutationOptions;
 };
 
-export const postUserMeMutation = (options?: Partial<Options<PostUserMeData>>): UseMutationOptions<unknown, PostUserMeError, Options<PostUserMeData>> => {
-    const mutationOptions: UseMutationOptions<unknown, PostUserMeError, Options<PostUserMeData>> = {
-        mutationFn: async (fnOptions) => {
-            const { data } = await postUserMe({
-                ...options,
-                ...fnOptions,
-                throwOnError: true
-            });
-            return data;
-        }
-    };
-    return mutationOptions;
-};
+export const getUserMeQueryKey = (options?: Options<GetUserMeData>) => createQueryKey('getUserMe', options);
+
+export const getUserMeOptions = (options?: Options<GetUserMeData>) => queryOptions<unknown, GetUserMeError, unknown, ReturnType<typeof getUserMeQueryKey>>({
+    queryFn: async ({ queryKey, signal }) => {
+        const { data } = await getUserMe({
+            ...options,
+            ...queryKey[0],
+            signal,
+            throwOnError: true
+        });
+        return data;
+    },
+    queryKey: getUserMeQueryKey(options)
+});
 
 export const getUserListQueryKey = (options?: Options<GetUserListData>) => createQueryKey('getUserList', options);
 

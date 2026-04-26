@@ -6,7 +6,7 @@ const router = createRouter({
     {
       path: '/',
       name: 'Root',
-      redirect: '/graph',
+      redirect: { name: 'GraphList' },
       component: () => import('@/App.vue'),
       children: [
         {
@@ -21,6 +21,11 @@ const router = createRouter({
         },
         {
           path: '/graph',
+          name: 'GraphList',
+          component: () => import('@/pages/GraphListPage.vue'),
+        },
+        {
+          path: '/graph/:graphId',
           name: 'GraphPage',
           component: () => import('@/pages/GraphPage.vue'),
         }

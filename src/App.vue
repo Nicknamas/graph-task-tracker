@@ -1,3 +1,13 @@
+<script setup lang="ts">
+import 'vue3-toastify/dist/index.css';
+import { client } from './generated/api/client.gen';
+import { setToken } from './scripts/tasks';
+
+client.setConfig({ baseUrl: import.meta.env.VITE_API })
+
+setToken()
+</script>
+
 <template>
   <RouterView />
 </template>

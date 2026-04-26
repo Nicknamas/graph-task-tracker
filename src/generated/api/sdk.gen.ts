@@ -2,7 +2,7 @@
 
 import type { Client, Options as Options2, TDataShape } from './client';
 import { client } from './client.gen';
-import type { GetByGraphIdSseData, GetByGraphIdSseErrors, GetGetPaginatedGraphData, GetGetPaginatedGraphErrors, GetUserListData, GetUserListErrors, PatchSyncData, PatchSyncErrors, PostCreateData, PostCreateErrors, PostCreateResponses, PostLoginData, PostLoginErrors, PostLoginResponses, PostMakeAssignedData, PostMakeAssignedErrors, PostRegistrationData, PostRegistrationErrors, PostRegistrationResponses, PostRemoveAssignedData, PostRemoveAssignedErrors, PostUserMeData, PostUserMeErrors } from './types.gen';
+import type { DeleteByGraphIdData, DeleteByGraphIdErrors, GetByGraphIdSseData, GetByGraphIdSseErrors, GetGetPaginatedGraphData, GetGetPaginatedGraphErrors, GetGetPaginatedGraphResponses, GetUserListData, GetUserListErrors, GetUserMeData, GetUserMeErrors, PatchSyncData, PatchSyncErrors, PostCreateData, PostCreateErrors, PostCreateResponses, PostLoginData, PostLoginErrors, PostLoginResponses, PostMakeAssignedData, PostMakeAssignedErrors, PostRegistrationData, PostRegistrationErrors, PostRegistrationResponses, PostRemoveAssignedData, PostRemoveAssignedErrors } from './types.gen';
 
 export type Options<TData extends TDataShape = TDataShape, ThrowOnError extends boolean = boolean, TResponse = unknown> = Options2<TData, ThrowOnError, TResponse> & {
     /**
@@ -64,9 +64,15 @@ export const postRemoveAssigned = <ThrowOnError extends boolean = true>(options:
     }
 });
 
-export const getGetPaginatedGraph = <ThrowOnError extends boolean = true>(options?: Options<GetGetPaginatedGraphData, ThrowOnError>) => (options?.client ?? client).get<unknown, GetGetPaginatedGraphErrors, ThrowOnError>({
+export const getGetPaginatedGraph = <ThrowOnError extends boolean = true>(options?: Options<GetGetPaginatedGraphData, ThrowOnError>) => (options?.client ?? client).get<GetGetPaginatedGraphResponses, GetGetPaginatedGraphErrors, ThrowOnError>({
     security: [{ scheme: 'bearer', type: 'http' }],
     url: '/get-paginated-graph',
+    ...options
+});
+
+export const deleteByGraphId = <ThrowOnError extends boolean = true>(options: Options<DeleteByGraphIdData, ThrowOnError>) => (options.client ?? client).delete<unknown, DeleteByGraphIdErrors, ThrowOnError>({
+    security: [{ scheme: 'bearer', type: 'http' }],
+    url: '/{graphId}',
     ...options
 });
 
@@ -88,7 +94,7 @@ export const postLogin = <ThrowOnError extends boolean = true>(options: Options<
     }
 });
 
-export const postUserMe = <ThrowOnError extends boolean = true>(options?: Options<PostUserMeData, ThrowOnError>) => (options?.client ?? client).post<unknown, PostUserMeErrors, ThrowOnError>({
+export const getUserMe = <ThrowOnError extends boolean = true>(options?: Options<GetUserMeData, ThrowOnError>) => (options?.client ?? client).get<unknown, GetUserMeErrors, ThrowOnError>({
     security: [{ scheme: 'bearer', type: 'http' }],
     url: '/user/me',
     ...options

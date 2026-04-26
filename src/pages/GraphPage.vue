@@ -14,7 +14,6 @@ import {
   solveTask2_ValidateDFS,
   solveTask3_ShowBFS,
   solveTask4_ValidateBFS,
-  solveTask8_Dijkstra,
   solveTask9_FloydWarshall,
   type WeightedAdjacencyList
 } from "@/scripts/tasks";
@@ -24,6 +23,11 @@ import GraphHeader from '@/components/GraphHeader.vue';
 import GraphTable from '@/components/GraphTable.vue';
 import DeikstraTable from '@/components/DeikstraTable.vue';
 import FloyedTable from '@/components/FloyedTable.vue';
+import { fetchEventSource } from '@microsoft/fetch-event-source';
+import { client } from '@/generated/api/client.gen';
+import { useRoute } from 'vue-router';
+
+const route = useRoute()
 
 const resizeTimer = ref(null);
 const isLoadingMode = ref<boolean>(false)
@@ -35,7 +39,27 @@ const userConnectedComponents = ref(0)
 const isCheckMode = ref<boolean>(false)
 const userPath = ref<string>('')
 
+const graphId = computed<string>(() => String(route.params.graphId))
+
 const complexAnalysisGraph = computed(() => solveTask0_ComplexAnalysis(graph.value))
+
+const loadedGraph = ref()
+
+async function connectSSE() {
+  const config = client.getConfig();
+
+  await fetchEventSource(config.baseUrl + '/' + graphId.value + '/sse', {
+    headers: {
+      'Authorization': `Bearer ${localStorage.getItem('accessToken')}`,
+      'Accept': 'text/event-stream',
+    },
+    onmessage(msg) {
+      loadedGraph.value = JSON.parse(msg.data)
+    }
+  });
+}
+
+connectSSE()
 
 const codePrufer = computed(() => {
   return solveTask10_PruferEncode(graph.value)
@@ -497,8 +521,6 @@ const data = computed<Data>(() => {
     }
   }
 
-  console.log(JSON.stringify(object))
-
   return object
 })
 
@@ -608,6 +630,46 @@ const isHidedCheckMode = computed<boolean>(() => {
   }
 
   return true
+})
+
+function parseGraph(value: {
+  Edges: {
+    FromNodeId: string, ToNodeId: string, Weight: number
+  }[],
+  Nodes: {
+    Id: string
+  }[]
+}): (number | undefined)[][] {
+  const { Nodes, Edges } = value;
+  const n = Nodes.length;
+
+  const nodeToIndexMap = new Map<string, number>();
+  Nodes.forEach((node, index) => {
+    nodeToIndexMap.set(node.Id, index);
+  });
+
+  const matrix: (number | undefined)[][] = Array.from(
+    { length: n },
+    () => new Array(n).fill(undefined)
+  );
+
+  for (const edge of Edges) {
+    const fromIndex = nodeToIndexMap.get(edge.FromNodeId);
+    const toIndex = nodeToIndexMap.get(edge.ToNodeId);
+
+    if (fromIndex !== undefined && toIndex !== undefined) {
+      matrix[fromIndex][toIndex] = edge.Weight;
+    }
+  }
+
+  return matrix;
+}
+
+watch(loadedGraph, () => {
+  if (loadedGraph.value) {
+    const result = parseGraph(loadedGraph.value)
+    values.value = result
+  }
 })
 
 watch(data, () => {

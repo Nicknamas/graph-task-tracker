@@ -7,6 +7,7 @@ export type ClientOptions = {
 export type CreateGraphRequest = {
     name?: string;
     description?: string;
+    time?: string;
 };
 
 export type CreateGraphResponse = {
@@ -36,6 +37,15 @@ export type ErrorResponse = {
     title?: string;
     status?: number;
     error?: string;
+};
+
+export type GraphCartResponse = {
+    id?: string;
+    name?: string;
+    description?: string;
+    userId?: string;
+    createdAt?: string;
+    updatedAt?: string;
 };
 
 export type MakeAssignedRequest = {
@@ -234,6 +244,41 @@ export type GetGetPaginatedGraphErrors = {
 
 export type GetGetPaginatedGraphError = GetGetPaginatedGraphErrors[keyof GetGetPaginatedGraphErrors];
 
+export type GetGetPaginatedGraphResponses = {
+    /**
+     * OK
+     */
+    200: Array<GraphCartResponse>;
+};
+
+export type GetGetPaginatedGraphResponse = GetGetPaginatedGraphResponses[keyof GetGetPaginatedGraphResponses];
+
+export type DeleteByGraphIdData = {
+    body?: never;
+    path: {
+        graphId: string;
+    };
+    query?: never;
+    url: '/{graphId}';
+};
+
+export type DeleteByGraphIdErrors = {
+    /**
+     * Bad Request
+     */
+    400: ValidationErrorResponse;
+    /**
+     * Unauthorized
+     */
+    401: ErrorResponse;
+    /**
+     * Unprocessable Entity
+     */
+    422: ErrorResponse;
+};
+
+export type DeleteByGraphIdError = DeleteByGraphIdErrors[keyof DeleteByGraphIdErrors];
+
 export type PostRegistrationData = {
     body: VerifyUserRequest;
     path?: never;
@@ -292,14 +337,14 @@ export type PostLoginResponses = {
 
 export type PostLoginResponse = PostLoginResponses[keyof PostLoginResponses];
 
-export type PostUserMeData = {
+export type GetUserMeData = {
     body?: never;
     path?: never;
     query?: never;
     url: '/user/me';
 };
 
-export type PostUserMeErrors = {
+export type GetUserMeErrors = {
     /**
      * Bad Request
      */
@@ -310,7 +355,7 @@ export type PostUserMeErrors = {
     401: ErrorResponse;
 };
 
-export type PostUserMeError = PostUserMeErrors[keyof PostUserMeErrors];
+export type GetUserMeError = GetUserMeErrors[keyof GetUserMeErrors];
 
 export type GetUserListData = {
     body?: never;
