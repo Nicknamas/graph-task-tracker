@@ -53,6 +53,43 @@ const { mutate: updateGraph } = useMutation({
   onSuccess: () => {}
 })
 
+const mstResult = computed(() => {
+  const result = solveTask7_PrimMST(graphWithWeight.value)
+
+  let sum = 0
+
+  for (const node of result) {
+    sum += node.w ?? 0
+  }
+
+  return sum
+})
+
+const isOrdered = computed<boolean>(() => {
+  let flag = true
+  for (let i = 0; i < values.value.length; i++) {
+    const row = values.value[i]
+
+    if (!row) continue
+
+    for (let j = i; j < row.length; j++) {
+      const row1 = values.value[i]
+      const row2 = values.value[j]
+
+      if (!row1 || !row2) continue
+
+      const value1 = row1[j]
+      const value2 = row2[i]
+
+      if (value1 !== value2) {
+        flag = false
+      }
+    }
+  }
+
+  return flag
+})
+
 function uuidv4() {
   return "10000000-1000-4000-8000-100000000000".replace(/[018]/g, c =>
     (+c ^ crypto.getRandomValues(new Uint8Array(1))[0] & 15 >> +c / 4).toString(16)
@@ -67,15 +104,12 @@ function handleUpdateGraph(): void {
 
     let id = idFromItem
 
-    console.log('Map has value: ', indexMapToNode.has(Number(id)))
-
     if (indexMapToNode.has(Number(id))) {
       const guid = indexMapToNode.get(Number(id))
       getNodeGUIDByNumberId.set(Number(id), guid.Id)
       id = String(guid.Id)
     } else {
       const value = uuidv4()
-      console.log('Generated GUID: ', value)
       getNodeGUIDByNumberId.set(Number(id), value)
       id = value
     }
@@ -141,10 +175,19 @@ async function connectSSE() {
 connectSSE()
 
 const codePrufer = computed(() => {
+  console.log(values.value)
   if (!getVertexDegrees(graph.value).includes(1)) {
     return
   }
-  return solveTask10_PruferEncode(graph.value)
+  if (!isOrdered.value) {
+    return
+  }
+
+  const result = getGraph()
+
+  console.log(result)
+
+  return solveTask10_PruferEncode(getGraph())
 })
 
 const dfsPath = computed(() => {
@@ -314,7 +357,6 @@ function render() {
       .data(links)
       .enter().append("line")
       .attr("stroke", "black")
-      .attr("stroke-opacity", 0.6)
       .attr("marker-end", "url(#arrowhead)")
       .each(function (d) {
         const el = d3.select(this)
@@ -511,12 +553,12 @@ async function startMST() {
   for (const node of mstPath.value) {
     const el1 = d3.select(`[data-id="${node.u}"]`)
     const el2 = d3.select(`[data-id="${node.v}"]`)
-    const edge = d3.select(`[data-id="${node.u}${node.v}]`)
+    const edge = d3.select(`[data-id="${node.u}${node.v}"]`)
     const t = d3.transition().duration(400)
     el1.transition(t).attr('fill', 'black')
     el2.transition(t).attr('fill', 'black')
-    console.log(edge)
-    edge.transition(t).attr('stroke', 'orange')
+    edge.transition(t).attr('stroke', 'yellow')
+    edge.transition(t).attr('fill', 'yellow')
     edge.transition(t).attr('stroke-width', '2')
   }
 
@@ -558,7 +600,7 @@ const graphWithWeight = computed<WeightedAdjacencyList>(() => {
   return array
 })
 
-const graph = computed<number[][]>(() => {
+function getGraph(): number[][] {
   const object = {}
 
   for (const node of data.value.nodes) {
@@ -582,7 +624,7 @@ const graph = computed<number[][]>(() => {
   }
 
   return array
-})
+}
 
 const values = ref<(number | undefined)[][]>([[undefined]])
 
@@ -623,6 +665,8 @@ const data = computed<Data>(() => {
 
   return object
 })
+
+const graph = computed<number[][]>(() => getGraph())
 
 const nodeIds = computed<string[]>(() => {
   return data.value.nodes.map((i) => i.id)
@@ -677,13 +721,9 @@ function processPrufer(value: [number, number][]): (number | undefined)[][] {
     }
   }
 
-  console.log(JSON.stringify(value))
-
   for (let from = 0; from <= maxNode; from++) {
     result[from] = createArray(maxNode + 1, undefined)
   }
-
-  console.log(JSON.stringify(result))
 
   for (let from = 0; from < maxNode; from++) {
     const row = value[from]
@@ -692,8 +732,6 @@ function processPrufer(value: [number, number][]): (number | undefined)[][] {
 
     for (const to of row) {
       if (to === from) continue
-
-      console.log(`from ${from} - to ${to}`)
 
       result[from][to] = 1
       result[to][from] = 1
@@ -969,6 +1007,12 @@ onMounted(() => {
             </h3>
             <FloyedTable :values="graphWithWeight" />
           </div>
+          <p
+            v-show="activeMode === 'mst'"
+            :class="$style.text"
+          >
+            Сумма рёбер: {{ mstResult }}
+          </p>
           <p
             v-show="activeMode === undefined"
             :class="$style.text"
