@@ -1,7 +1,15 @@
 name: graph-task
 services:
   front:
+    container_name: graph-task-front-1
     build:
       context: .
     ports:
-      - "8001:80"
+      - "8001:8080"
+    networks:
+      - proxy-network
+    restart: always
+
+networks:
+  proxy-network:
+    external: true

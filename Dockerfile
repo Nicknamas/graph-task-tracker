@@ -1,22 +1,18 @@
 FROM node:lts-alpine3.22 AS builder
+WORKDIR /app
+COPY package.json package-lock.json* ./
+RUN --mount=type=cache,target=/root/.npm npm ci
+COPY . .
+RUN npm run build
+
+FROM node:lts-alpine3.22 AS runner
 
 WORKDIR /app
 
-COPY package.json package-lock.json* ./
+RUN npm install -g serve
 
-RUN --mount=type=cache,target=/root/.npm npm ci
+COPY --from=builder /app/dist ./dist
 
-COPY . .
+EXPOSE 3000
 
-RUN npm run build
-
-FROM nginxinc/nginx-unprivileged:latest AS runner
-
-COPY nginx.conf /etc/nginx/nginx.conf
-
-COPY --chown=nginx:nginx --from=builder /app/dist /usr/share/nginx/html
-
-USER nginx
-
-ENTRYPOINT ["nginx", "-c", "/etc/nginx/nginx.conf"]
-CMD ["-g", "daemon off;"]
+CMD ["serve", "-s", "dist", "-l", "3000"
