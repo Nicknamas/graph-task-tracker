@@ -1,6 +1,6 @@
 <script lang="ts" setup>
 import { postCreateMutation } from '@/generated/api/@tanstack/vue-query.gen';
-import { useMutation } from '@tanstack/vue-query';
+import { useMutation, useQueryClient } from '@tanstack/vue-query';
 import { ref } from 'vue';
 
 interface Props {
@@ -13,6 +13,7 @@ interface Emits {
 
 defineProps<Props>()
 const emit = defineEmits<Emits>()
+const queryClient = useQueryClient()
 
 const isShow = defineModel<boolean>({ required: true })
 const title = ref('')
@@ -21,6 +22,7 @@ const description = ref('')
 const { mutate: createGraph } = useMutation({
   ...postCreateMutation(),
   onSuccess: () => {
+    queryClient.invalidateQueries({ queryKey: ['graphs'] })
     emit('close')
   }
 })

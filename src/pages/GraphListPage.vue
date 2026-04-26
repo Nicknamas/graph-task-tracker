@@ -1,15 +1,25 @@
 <script setup lang="ts">
 import { ref } from 'vue';
 import GraphCreateModal from './GraphCreateModal.vue';
-import { useQuery } from '@tanstack/vue-query';
+import { useMutation, useQuery } from '@tanstack/vue-query';
 import { getGetPaginatedGraph } from '@/generated/api';
 import { RouterLink } from 'vue-router';
+import { deleteByGraphIdMutation } from '@/generated/api/@tanstack/vue-query.gen';
 
 const isShowCreateGraph = ref<boolean>(false)
 const searchQuery = ref<string>('')
 
+const { mutate: deleteGraph } = useMutation({
+  ...deleteByGraphIdMutation(),
+})
+
+function handleDeleteGraph(graphId: string | undefined): void {
+  if (!graphId) return
+  deleteGraph({ path: { graphId } })
+}
+
 const { data: list } = useQuery({
-  queryKey: ['graphs'],
+  queryKey: ['graphs', searchQuery],
   queryFn: async () => {
     const { data } = await getGetPaginatedGraph({
       query: {
@@ -40,6 +50,7 @@ const { data: list } = useQuery({
         Создать граф
       </button>
       <input
+        v-model="searchQuery"
         :class="$style.input"
         placeholder="Поиск графов"
         type="text"
@@ -53,8 +64,14 @@ const { data: list } = useQuery({
           :class="$style.item"
           :to="{ name: 'GraphPage', params: { graphId: item.id } }"
         >
-          <div
-          >
+          <div>
+            <div
+              :class="$style.delete"
+              @click="handleDeleteGraph(item.id)"
+            >
+              X
+
+            </div>
             <p :class="$style.itemName">
               {{ item.name }}
             </p>
@@ -117,9 +134,28 @@ const { data: list } = useQuery({
   gap: 12px;
 }
 
+.itemName, .itemDescription {
+  color: var(--text-color);
+}
+
 .item {
+  position: relative;
   padding: 20px;
   border-radius: 12px;
   border: 1px solid var(--border);
+
+  .delete {
+    position: absolute;
+    top: 8px;
+    right: 8px;
+  }
 }
+
+.input {
+  width: 100%;
+  padding: 8px 12px;
+  border-radius: 8px;
+  border: 1px solid var(--border);
+}
+
 </style>

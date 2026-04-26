@@ -7,7 +7,13 @@ const activeMode = defineModel<Modes>({ required: true })
 
 <template>
   <div :class="$style.aside">
-    <h2 :class="$style.title">GUTT</h2>
+    <h2
+      :class="$style.title"
+      @click="$router.push({ name: 'GraphList' })"
+    >
+      GUTT
+
+    </h2>
     <div :class="$style.buttons">
       <button
         @click="activeMode = 'complex'"
@@ -118,6 +124,7 @@ const activeMode = defineModel<Modes>({ required: true })
     color: var(--text-color);
     font-size: 32px;
     font-weight: bold;
+    cursor: pointer;
   }
 
   .buttons {
