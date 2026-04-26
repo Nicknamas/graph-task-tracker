@@ -11,7 +11,6 @@ import {
   solveTask0_ComplexAnalysis,
   solveTask10_PruferEncode,
   solveTask11_PruferDecode,
-  solveTask12_GreedyColoring,
   solveTask1_ShowDFS,
   solveTask7_PrimMST,
   solveTask2_ValidateDFS,
