@@ -1,4 +1,5 @@
 import { client } from "@/generated/api/client.gen";
+import { useRouter } from "vue-router";
 
 export type AdjacencyList = number[][]; // [0:[1,2,3]]
 export interface WeightedEdge {
@@ -13,24 +14,40 @@ export function createArray<T>(length: number, value: T): T[] {
   return arr;
 }
 
-export const setToken = (token: string | undefined = undefined) => {
-  if (token) {
-    localStorage.setItem('accessToken', token)
+export function useSetToken() {
+  const router = useRouter()
+
+  const setToken = (token: string | undefined = undefined) => {
+    if (token) {
+      localStorage.setItem('accessToken', token)
+    }
+
+    client.setConfig({
+      baseUrl: import.meta.env.VITE_API,
+      auth() {
+        const token = localStorage.getItem('accessToken')
+
+        if (!token) {
+          return
+        }
+
+        return token
+      }
+    })
+
+    client.interceptors.response.use((response) => {
+      if (response.status === 401) {
+        router.push({ name: 'AuthPage' })
+      }
+      return response
+    })
   }
 
-  client.setConfig({
-    baseUrl: import.meta.env.VITE_API,
-    auth() {
-      const token = localStorage.getItem('accessToken')
-
-      if (!token) {
-        return
-      }
-
-      return token
-    }
-  })
+  return {
+    setToken,
+  }
 }
+
 
 export const sleep = (ms: number) => new Promise((r) => setTimeout(r, ms));
 

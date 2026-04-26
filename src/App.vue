@@ -1,7 +1,9 @@
 <script setup lang="ts">
 import 'vue3-toastify/dist/index.css';
 import { client } from './generated/api/client.gen';
-import { setToken } from './scripts/tasks';
+import { useSetToken } from './scripts/tasks';
+
+const { setToken } = useSetToken()
 
 client.setConfig({ baseUrl: import.meta.env.VITE_API })
 

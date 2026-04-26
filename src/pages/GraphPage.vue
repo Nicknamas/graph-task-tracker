@@ -4,6 +4,7 @@ import { computed, onMounted, onUnmounted, ref, useTemplateRef, watch } from "vu
 import type { Data, Link, Modes, Node } from "@shared/index";
 import {
     createArray,
+  getVertexDegrees,
   runIterativeBFS,
   runIterativeDFS,
   sleep,
@@ -26,6 +27,10 @@ import FloyedTable from '@/components/FloyedTable.vue';
 import { fetchEventSource } from '@microsoft/fetch-event-source';
 import { client } from '@/generated/api/client.gen';
 import { useRoute } from 'vue-router';
+import { useMutation } from '@tanstack/vue-query';
+import { patchSyncMutation } from '@/generated/api/@tanstack/vue-query.gen';
+import type { CreateNodeMessage, EdgeMessage } from '@/generated/api';
+import { toast } from 'vue3-toastify';
 
 const route = useRoute()
 
@@ -42,6 +47,82 @@ const userPath = ref<string>('')
 const graphId = computed<string>(() => String(route.params.graphId))
 
 const complexAnalysisGraph = computed(() => solveTask0_ComplexAnalysis(graph.value))
+
+const { mutate: updateGraph } = useMutation({
+  ...patchSyncMutation(),
+  onSuccess: () => {}
+})
+
+function uuidv4() {
+  return "10000000-1000-4000-8000-100000000000".replace(/[018]/g, c =>
+    (+c ^ crypto.getRandomValues(new Uint8Array(1))[0] & 15 >> +c / 4).toString(16)
+  );
+}
+
+function handleUpdateGraph(): void {
+  const getNodeGUIDByNumberId = new Map<number, string>()
+
+  const nodes: CreateNodeMessage[] = data.value.nodes.map((item) => {
+    const { group, id: idFromItem } = item
+
+    let id = idFromItem
+
+    console.log('Map has value: ', indexMapToNode.has(Number(id)))
+
+    if (indexMapToNode.has(Number(id))) {
+      const guid = indexMapToNode.get(Number(id))
+      getNodeGUIDByNumberId.set(Number(id), guid.Id)
+      id = String(guid.Id)
+    } else {
+      const value = uuidv4()
+      console.log('Generated GUID: ', value)
+      getNodeGUIDByNumberId.set(Number(id), value)
+      id = value
+    }
+
+    return {
+      group,
+      id,
+      description: "",
+      name: "Node name",
+      assigned: [],
+    }
+  })
+
+
+
+  const edges: EdgeMessage[]  = data.value.links.map((item) => {
+    const { source, target, value } = item
+
+    let fromNodeId = source
+    let toNodeId = target
+
+    if (indexMapToNode.has(Number(fromNodeId))) {
+      const guid = indexMapToNode.get(Number(fromNodeId))
+      fromNodeId = String(guid.Id)
+    } else {
+      fromNodeId = getNodeGUIDByNumberId.get(Number(fromNodeId)) ?? ''
+    }
+
+    if (indexMapToNode.has(Number(toNodeId))) {
+      const guid = indexMapToNode.get(Number(toNodeId))
+      toNodeId = String(guid.Id)
+    } else {
+      toNodeId = getNodeGUIDByNumberId.get(Number(toNodeId)) ?? ''
+    }
+
+    return { fromNodeId, toNodeId, weight: value }
+  })
+
+
+  updateGraph({
+    body: {
+      edges,
+      graphId: graphId.value,
+      nodes,
+    }
+  })
+}
 
 const loadedGraph = ref()
 
@@ -62,14 +143,17 @@ async function connectSSE() {
 connectSSE()
 
 const codePrufer = computed(() => {
+  if (!getVertexDegrees(graph.value).includes(1)) {
+    return
+  }
   return solveTask10_PruferEncode(graph.value)
 })
 
 const dfsPath = computed(() => {
-  return solveTask1_ShowDFS(graph.value, selectedId.value)
+  return solveTask1_ShowDFS(graph.value, selectedId.value).map((item) => Number(item))
 })
 const bfsPath = computed(() => {
-  return solveTask3_ShowBFS(graph.value, selectedId.value)
+  return solveTask3_ShowBFS(graph.value, selectedId.value).map((item) => Number(item))
 })
 
 const decodePrufer = computed(() => {
@@ -632,6 +716,9 @@ const isHidedCheckMode = computed<boolean>(() => {
   return true
 })
 
+const nodeToIndexMap = new Map<string, number>();
+const indexMapToNode = new Map<number, CreateNodeMessage>();
+
 function parseGraph(value: {
   Edges: {
     FromNodeId: string, ToNodeId: string, Weight: number
@@ -643,9 +730,9 @@ function parseGraph(value: {
   const { Nodes, Edges } = value;
   const n = Nodes.length;
 
-  const nodeToIndexMap = new Map<string, number>();
   Nodes.forEach((node, index) => {
     nodeToIndexMap.set(node.Id, index);
+    indexMapToNode.set(index, node)
   });
 
   const matrix: (number | undefined)[][] = Array.from(
@@ -672,6 +759,15 @@ watch(loadedGraph, () => {
   }
 })
 
+watch(activeMode, () => {
+  if (activeMode.value === 'floyed') {
+    isCheckMode.value = false
+  }
+  if (activeMode.value === 'deikstra') {
+    isCheckMode.value = false
+  }
+})
+
 watch(data, () => {
   render()
 })
@@ -689,6 +785,7 @@ onMounted(() => {
         <GraphHeader
           @start="handleStart"
           @restart="reset"
+          @update="handleUpdateGraph"
           v-model="isCheckMode"
           :is-hided-restart="isHidedRestart"
           :is-hided-check-mode="isHidedCheckMode"
@@ -700,11 +797,12 @@ onMounted(() => {
         </div>
       </div>
       <GraphTable
+        :active-mode="activeMode"
         v-model="values"
       >
-        <div :class="$style.slot" v-if="isCheckMode">
+        <div :class="$style.slot" v-show="isCheckMode">
           <div
-            v-if="activeMode === 'connected-components'"
+            v-show="activeMode === 'connected-components'"
             :class="$style.section"
           >
             <h3 :class="$style.title">
@@ -719,7 +817,7 @@ onMounted(() => {
             />
           </div>
           <div
-            v-if="activeMode === 'dfs'"
+            v-show="activeMode === 'dfs'"
           >
             <input
               v-model="userPath"
@@ -728,7 +826,7 @@ onMounted(() => {
             />
           </div>
           <div
-            v-if="activeMode === 'bfs'"
+            v-show="activeMode === 'bfs'"
           >
             <input
               v-model="userPath"
@@ -737,7 +835,7 @@ onMounted(() => {
             />
           </div>
           <div
-            v-if="activeMode === 'prufer'"
+            v-show="activeMode === 'prufer'"
             :class="$style.section"
           >
             <h3 :class="$style.text">
@@ -751,9 +849,9 @@ onMounted(() => {
             />
           </div>
         </div>
-        <div v-else>
+        <div v-show="!isCheckMode">
           <div
-            v-if="activeMode === 'complex'"
+            v-show="activeMode === 'complex'"
             :class="$style.section"
           >
             <h3 :class="$style.title">
@@ -788,7 +886,7 @@ onMounted(() => {
             </div>
           </div>
           <div
-            v-if="activeMode === 'dfs'"
+            v-show="activeMode === 'dfs'"
             :class="$style.section"
           >
             <p
@@ -798,7 +896,7 @@ onMounted(() => {
             </p>
           </div>
           <div
-            v-if="activeMode === 'bfs'"
+            v-show="activeMode === 'bfs'"
             :class="$style.section"
           >
             <p
@@ -808,7 +906,7 @@ onMounted(() => {
             </p>
           </div>
           <div
-            v-if="activeMode === 'connected-components'"
+            v-show="activeMode === 'connected-components'"
             :class="$style.section"
           >
             <p
@@ -818,13 +916,13 @@ onMounted(() => {
             </p>
           </div>
           <p
-            v-if="activeMode === 'prufer'"
+            v-show="activeMode === 'prufer'"
             :class="$style.text"
           >
             Код прюфера: {{ codePrufer }}
           </p>
           <div
-            v-if="activeMode === 'deikstra'"
+            v-show="activeMode === 'deikstra'"
             :class="$style.section"
           >
             <h3 :class="$style.title">
@@ -833,7 +931,7 @@ onMounted(() => {
             <DeikstraTable :selected-id="selectedId" :values="graphWithWeight" />
           </div>
           <div
-            v-if="activeMode === 'floyed'"
+            v-show="activeMode === 'floyed'"
             :class="$style.section"
           >
             <h3 :class="$style.title">
@@ -842,7 +940,7 @@ onMounted(() => {
             <FloyedTable :values="graphWithWeight" />
           </div>
           <p
-            v-if="activeMode === undefined"
+            v-show="activeMode === undefined"
             :class="$style.text"
           >
             Выберите задачу

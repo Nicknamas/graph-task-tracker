@@ -1,12 +1,13 @@
 <script setup lang="ts" >
 import { postRegistrationMutation } from '@/generated/api/@tanstack/vue-query.gen';
-import { setToken } from '@/scripts/tasks';
+import { useSetToken } from '@/scripts/tasks';
 import { useMutation } from '@tanstack/vue-query';
 import { ref } from 'vue';
 import { useRouter } from 'vue-router';
 import { toast } from 'vue3-toastify';
 
 const router = useRouter()
+const { setToken } = useSetToken()
 
 const username = ref<string>()
 const password = ref<string>()
@@ -24,6 +25,10 @@ const { mutate: registration } = useMutation({
         toast("Пароль должен быть не менее 8 символов")
         return
       }
+      if (e === "Password must contain at least one lowercase letter.") {
+        toast("Пароль должен содержать как минимум одну строчную букву.")
+        return
+      }
       if (e === "Password must contain at least one uppercase letter.") {
         toast("Пароль должен содержать хотя бы одну заглавную букву.")
         return
@@ -32,6 +37,8 @@ const { mutate: registration } = useMutation({
         toast("Пароль должен содержать хотя бы один специальный символ (!?*.@#$%^).")
         return
       }
+
+      toast(e)
     }
   },
   onSuccess: (data) => {

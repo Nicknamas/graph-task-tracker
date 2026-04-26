@@ -1,14 +1,24 @@
 <script setup lang="ts">
-import { ref } from 'vue'
+import { ref, watch } from 'vue'
 import MinusIcon from './MinusIcon.vue'
 import PlusIcon from './PlusIcon.vue'
+import type { Modes } from '@/shared'
 
-const values = defineModel<(number | undefined)[][]>()
+interface Props {
+  activeMode: Modes
+}
+
+const { activeMode } = defineProps<Props>()
+
+const values = defineModel<(number | undefined)[][]>({ required: true })
 
 const isOrient = ref<boolean>(false)
 
 function addNode(): void {
-  if (!values.value || !values.value[0]) return
+  if (!values.value || !values.value[0]) {
+    values.value = [[undefined]]
+    return
+  }
 
   const lengthRow = values.value[0].length
 
@@ -50,6 +60,30 @@ function handleInput(event: InputEvent, x: number, y: number) {
     row[x] = Number((event.target as HTMLInputElement).value)
   }
 }
+
+watch(() => activeMode, () => {
+  if (activeMode === 'prufer') {
+    isOrient.value = true
+
+    for (let i = 0; i < values.value.length; i++) {
+      const row = values.value[i]
+
+      if (!row) continue
+
+      for (let j = i; j < row.length; j++) {
+        console.log('J: ', j)
+        console.log('I: ', i)
+        const row1 = values.value[i]
+        const row2 = values.value[j]
+
+        if (!row1 || !row2) continue
+
+        const value = row1[j]
+        row2[i] = value
+      }
+    }
+  }
+})
 </script>
 
 <template>

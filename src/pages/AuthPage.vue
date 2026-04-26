@@ -1,9 +1,11 @@
 <script setup lang="ts" >
 import { postLoginMutation } from '@/generated/api/@tanstack/vue-query.gen';
-import { setToken } from '@/scripts/tasks';
+import { useSetToken } from '@/scripts/tasks';
 import { useMutation } from '@tanstack/vue-query';
 import { ref } from 'vue';
 import { useRouter } from 'vue-router';
+
+const { setToken } = useSetToken()
 
 const router = useRouter()
 
