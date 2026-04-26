@@ -1,16 +1,20 @@
 <script setup lang="ts">
 import { ref } from 'vue';
 import GraphCreateModal from './GraphCreateModal.vue';
-import { useMutation, useQuery } from '@tanstack/vue-query';
+import { useMutation, useQuery, useQueryClient } from '@tanstack/vue-query';
 import { getGetPaginatedGraph } from '@/generated/api';
 import { RouterLink } from 'vue-router';
 import { deleteByGraphIdMutation } from '@/generated/api/@tanstack/vue-query.gen';
 
+const queryClient = useQueryClient()
 const isShowCreateGraph = ref<boolean>(false)
 const searchQuery = ref<string>('')
 
 const { mutate: deleteGraph } = useMutation({
   ...deleteByGraphIdMutation(),
+  onSuccess: () => {
+    queryClient.invalidateQueries({ queryKey: ['graphs'] })
+  }
 })
 
 function handleDeleteGraph(graphId: string | undefined): void {
@@ -41,7 +45,6 @@ const { data: list } = useQuery({
         GUTT
       </p>
     </div>
-    <div :class="$style.divider" />
     <div :class="$style.content">
       <button
         :class="$style.button"
@@ -67,10 +70,9 @@ const { data: list } = useQuery({
           <div>
             <div
               :class="$style.delete"
-              @click="handleDeleteGraph(item.id)"
+              @click.prevent="handleDeleteGraph(item.id)"
             >
               X
-
             </div>
             <p :class="$style.itemName">
               {{ item.name }}
@@ -100,6 +102,11 @@ const { data: list } = useQuery({
 .header {
   width: 100%;
   padding: 12px 16px;
+
+  .logo {
+    font-size: 32px;
+    color: var(--text-color);
+  }
 }
 
 .button {
@@ -145,9 +152,23 @@ const { data: list } = useQuery({
   border: 1px solid var(--border);
 
   .delete {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
     position: absolute;
     top: 8px;
     right: 8px;
+    width: 32px;
+    height: 32px;
+    cursor: pointer;
+    padding: 8px;
+    border-radius: 50%;
+    transition: 0.1s;
+
+    &:hover {
+      background-color: var(--border);
+    }
   }
 }
 
