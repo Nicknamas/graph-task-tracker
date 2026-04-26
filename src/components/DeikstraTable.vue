@@ -1,25 +1,29 @@
 <script setup lang="ts">
+import { solveTask8_Dijkstra, type WeightedAdjacencyList } from '@/scripts/tasks';
+import { computed } from 'vue';
+
 interface Props {
   selectedId: number
-  values: number[][]
+  values: WeightedAdjacencyList
 }
 
-defineProps<Props>()
+const { values, selectedId } = defineProps<Props>()
+
+const result = computed(() => solveTask8_Dijkstra(values, selectedId))
 </script>
 
 <template>
   <div :class="$style.tableContainer">
     <div :class="$style.header">
       <p :class="$style.title">
-        Deikstra
+        Выбранный id: {{ selectedId }}
       </p>
     </div>
     <table :class="$style.table" >
       <thead>
         <tr>
-          <th></th>
           <th
-            v-for="(_, index) of values"
+            v-for="(_, index) of result"
             :key="index"
           >
             {{ index }}
@@ -27,38 +31,27 @@ defineProps<Props>()
         </tr>
       </thead>
       <tbody>
-        <tr
-          v-for="(row, indexY) of values"
-          :key="indexY"
-        >
-          <th>
-            {{ indexY }}
-          </th>
+        <tr>
           <td
-            v-for="(_, indexX) in row.length"
-            :key="indexX"
+            v-for="(value, indexY) of result"
+            :key="indexY"
           >
             <input
-              v-if="indexX === indexY"
+              v-if="!value"
               :class="$style.input"
               readonly
-              disabled
               value="-"
             >
             <input
               v-else
-              v-model.number="row[indexX]"
               :class="$style.input"
-              placeholder="0"
+              readonly
+              :value="value"
             />
           </td>
         </tr>
       </tbody>
     </table>
-    <div :class="$style.divider" />
-    <div :class="$style.slot">
-      <slot />
-    </div>
   </div>
 </template>
 
@@ -67,9 +60,6 @@ defineProps<Props>()
   display: flex;
   flex-direction: column;
   gap: 16px;
-  background-color: var(--table-color);
-  border: 1px solid var(--table-border-color);
-  padding: 20px;
   height: 100%;
 }
 

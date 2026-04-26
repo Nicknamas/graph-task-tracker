@@ -22,6 +22,7 @@ import ZoomPanel from '@/components/ZoomPanel.vue';
 import GraphAside from '@/components/GraphAside.vue';
 import GraphHeader from '@/components/GraphHeader.vue';
 import GraphTable from '@/components/GraphTable.vue';
+import DeikstraTable from '@/components/DeikstraTable.vue';
 
 const resizeTimer = ref(null);
 const isLoadingMode = ref<boolean>(false)
@@ -114,10 +115,6 @@ function calculateIntersection(source, target, width, height) {
         };
     }
 }
-
-const deikstra = computed(() => {
-  return solveTask8_Dijkstra(graphWithWeight.value, selectedId.value)
-})
 
 const flowyed = computed(() => {
   return solveTask9_FloydWarshall(graphWithWeight.value)
@@ -414,7 +411,7 @@ const graphWithWeight = computed<WeightedAdjacencyList>(() => {
   const object = {}
 
   for (const node of data.value.nodes) {
-    object[Number(node.id)] = [{ node: Number(node.id), weight: 0 }]
+    object[Number(node.id)] = []
   }
 
   for (const link of data.value.links) {
@@ -763,6 +760,15 @@ onMounted(() => {
           >
             Код прюфера: {{ codePrufer }}
           </p>
+          <div
+            v-if="activeMode === 'deikstra'"
+            :class="$style.section"
+          >
+            <h3 :class="$style.title">
+              Результат работы дейкстры:
+            </h3>
+            <DeikstraTable :selected-id="selectedId" :values="graphWithWeight" />
+          </div>
           <p
             v-if="activeMode === undefined"
             :class="$style.text"
