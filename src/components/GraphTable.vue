@@ -99,7 +99,8 @@ function deleteNode(): void {
         </tr>
       </tbody>
     </table>
-    <div>
+    <div :class="$style.divider" />
+    <div :class="$style.slot">
       <slot />
     </div>
   </div>
@@ -109,7 +110,7 @@ function deleteNode(): void {
 .tableContainer {
   display: flex;
   flex-direction: column;
-  gap: 8px;
+  gap: 16px;
   background-color: var(--table-color);
   border: 1px solid var(--table-border-color);
   padding: 20px;
@@ -123,9 +124,15 @@ function deleteNode(): void {
   gap: 8px;
 
   .title {
-    font-size: 16px;
+    font-size: 20px;
     color: var(--text-color);
   }
+}
+
+.divider {
+  width: 100%;
+  height: 1px;
+  background-color: var(--table-border-color);
 }
 
 .buttons {
@@ -241,4 +248,7 @@ function deleteNode(): void {
   }
 }
 
+.slot {
+  margin-top: 12px;
+}
 </style>

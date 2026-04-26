@@ -26,7 +26,7 @@ const selectedId = ref(0)
 const zoomValue = ref()
 const svgRef = useTemplateRef('svg')
 const activeMode = ref<Modes>()
-const userConnectedComponents = ref()
+const userConnectedComponents = ref(0)
 const isCheckMode = ref<boolean>(false)
 const userPath = ref<string>('')
 
@@ -541,6 +541,26 @@ const isHidedRestart = computed<boolean>(() => {
   return true
 })
 
+const isHidedCheckMode = computed<boolean>(() => {
+  if (activeMode.value === 'dfs') {
+    return false
+  }
+
+  if (activeMode.value === 'bfs') {
+    return false
+  }
+
+  if (activeMode.value === 'connected-components') {
+    return false
+  }
+
+  if (activeMode.value === 'prufer') {
+    return false
+  }
+
+  return true
+})
+
 watch(data, () => {
   render()
 })
@@ -560,6 +580,7 @@ onMounted(() => {
           @restart="reset"
           v-model="isCheckMode"
           :is-hided-restart="isHidedRestart"
+          :is-hided-check-mode="isHidedCheckMode"
           :show-buttons="Boolean(activeMode)"
         />
         <div :class="$style.view">
@@ -573,11 +594,17 @@ onMounted(() => {
         <div :class="$style.slot" v-if="isCheckMode">
           <div
             v-if="activeMode === 'connected-components'"
+            :class="$style.section"
           >
+            <h3 :class="$style.title">
+              Проверка количества компонент связности
+            </h3>
             <input
               v-model.number="userConnectedComponents"
-              :class="$style.input"
-              placeholder="Введите количество компонент связности"
+              type="number"
+              :class="$style.input + ' ' + $style.inputNumber"
+              value="0"
+              placeholder="0"
             />
           </div>
           <div
@@ -615,12 +642,51 @@ onMounted(() => {
           </div>
         </div>
         <div v-else>
-          <p
-            v-if="activeMode === 'connected-components'"
-            :class="$style.text"
+          <div
+            v-if="activeMode === 'complex'"
+            :class="$style.section"
           >
-            Количество компонент связности: {{ complexAnalysisGraph.componentCount }}
-          </p>
+            <h3 :class="$style.title">
+              Комплексный анализ
+            </h3>
+            <div>
+              <p
+                :class="$style.text"
+              >
+                Количество компонентов связанности: {{ complexAnalysisGraph.componentCount }}
+              </p>
+              <p
+                :class="$style.text"
+              >
+                Степени вершин: {{ complexAnalysisGraph.degrees }}
+              </p>
+              <p
+                :class="$style.text"
+              >
+                Эйлеровость: {{ complexAnalysisGraph.euler }}
+              </p>
+              <p
+                :class="$style.text"
+              >
+                Двудольность: {{ complexAnalysisGraph.isBipartite ? 'Есть' : 'Нет' }}
+              </p>
+              <p
+                :class="$style.text"
+              >
+                Полная двудольность: {{ complexAnalysisGraph.isCompleteBipartite ? 'Есть' : 'Нет' }}
+              </p>
+            </div>
+          </div>
+          <div
+            v-if="activeMode === 'connected-components'"
+            :class="$style.section"
+          >
+            <p
+              :class="$style.text"
+            >
+              Количество компонент связности: {{ complexAnalysisGraph.componentCount }}
+            </p>
+          </div>
           <p
             v-if="activeMode === 'prufer'"
             :class="$style.text"
@@ -637,7 +703,12 @@ onMounted(() => {
 @import url('@/styles/reset.css');
 
 .block {
-  height: 100%;
+  height: 100%; }
+
+.section {
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
 }
 
 .view {
@@ -691,10 +762,10 @@ p {
   right: 12px;
 }
 
-.slot {
-  input {
-    width: 100%;
-  }
+.title {
+  font-size: 24px;
+  color: var(--text-color);
+  font-weight: 400;
 }
 
 .text {
@@ -707,6 +778,11 @@ p {
   padding: 8px 12px;
   border-radius: 4px;
   border: 1px solid var(--border);
+}
+
+.inputNumber {
+  width: 60px;
+  height: 40px;
 }
 </style>
 

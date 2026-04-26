@@ -4,6 +4,7 @@ import RestartIcon from './RestartIcon.vue';
 
 interface Props {
   isHidedRestart: boolean
+  isHidedCheckMode: boolean
   showButtons: boolean
 }
 
@@ -32,6 +33,7 @@ const isCheckMode = defineModel<boolean>()
       />
       <label
         for="check-mode"
+        v-if="!isHidedCheckMode"
       >
         Check mode:
         <input

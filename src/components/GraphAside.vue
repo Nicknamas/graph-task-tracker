@@ -10,6 +10,16 @@ const activeMode = defineModel<Modes>({ required: true })
     <h2 :class="$style.title">GUTT</h2>
     <div :class="$style.buttons">
       <button
+        @click="activeMode = 'complex'"
+        :class="$style.button"
+        :data-active="activeMode === 'complex'"
+      >
+        <Icon name="dfs" />
+        <p :class="$style.text">
+          Complex Analyze
+        </p>
+      </button>
+      <button
         @click="activeMode = 'dfs'"
         :class="$style.button"
         :data-active="activeMode === 'dfs'"
