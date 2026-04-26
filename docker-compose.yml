@@ -1,15 +1,26 @@
-name: graph-task
 services:
-  front:
-    container_name: graph-task-front-1
+  frontend:
     build:
       context: .
+      dockerfile: Dockerfile
+    container_name: graph-task-front
+    restart: unless-stopped
     ports:
-      - "8001:8080"
+      - "3000:3000"
+    logging:
+      driver: "json-file"
+      options:
+        max-size: "10m"
+        max-file: "3"
+    # Ограничения, чтобы не вешать VPS
+    deploy:
+      resources:
+        limits:
+          cpus: '0.70'
+          memory: 1024M
     networks:
-      - proxy-network
-    restart: always
+      - proxy_network
 
 networks:
-  proxy-network:
+  app_network:
     external: true
