@@ -518,6 +518,17 @@ function reset() {
     const el = d3.select(`[data-id="${id}"]`)
     el.attr('fill', 'orange')
   }
+
+  for (const node of mstPath.value) {
+    const edge1 = d3.select(`[data-id="${node.u}${node.v}"]`)
+    const edge2 = d3.select(`[data-id="${node.v}${node.u}"]`)
+    edge1.attr('stroke', 'black')
+    edge1.attr('fill', 'black')
+    edge1.attr('stroke-width', '1')
+    edge2.attr('stroke', 'black')
+    edge2.attr('fill', 'black')
+    edge2.attr('stroke-width', '1')
+  }
 }
 
 async function startBFS() {
@@ -554,13 +565,17 @@ async function startMST() {
   for (const node of mstPath.value) {
     const el1 = d3.select(`[data-id="${node.u}"]`)
     const el2 = d3.select(`[data-id="${node.v}"]`)
-    const edge = d3.select(`[data-id="${node.u}${node.v}"]`)
+    const edge1 = d3.select(`[data-id="${node.u}${node.v}"]`)
+    const edge2 = d3.select(`[data-id="${node.v}${node.u}"]`)
     const t = d3.transition().duration(400)
     el1.transition(t).attr('fill', 'black')
     el2.transition(t).attr('fill', 'black')
-    edge.transition(t).attr('stroke', 'yellow')
-    edge.transition(t).attr('fill', 'yellow')
-    edge.transition(t).attr('stroke-width', '2')
+    edge1.transition(t).attr('stroke', 'yellow')
+    edge1.transition(t).attr('fill', 'yellow')
+    edge1.transition(t).attr('stroke-width', '2')
+    edge2.transition(t).attr('stroke', 'yellow')
+    edge2.transition(t).attr('fill', 'yellow')
+    edge2.transition(t).attr('stroke-width', '2')
   }
 
   isLoadingMode.value = false
@@ -750,6 +765,10 @@ const isHidedRestart = computed<boolean>(() => {
   }
 
   if (activeMode.value === 'bfs') {
+    return false
+  }
+
+  if (activeMode.value === 'mst') {
     return false
   }
 
@@ -1012,7 +1031,8 @@ onMounted(() => {
             v-show="activeMode === 'mst'"
             :class="$style.text"
           >
-            Сумма рёбер: {{ mstResult }}
+            Сумма рёбер: {{ mstResult }} <br />
+            Путь: {{ mstPath.map((item) => [item.u, item.v]) }}
           </p>
           <p
             v-show="activeMode === undefined"
