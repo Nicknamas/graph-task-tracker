@@ -86,7 +86,7 @@ function handleCreateAccount() {
             :class="$style.button"
             @click="handleCreateAccount"
           >
-            Создать
+            Войти
           </button>
         </form>
       </motion.div>
